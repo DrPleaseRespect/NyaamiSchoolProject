@@ -8,12 +8,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
@@ -24,6 +27,9 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -32,12 +38,20 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private static final String TAG = "MainActivity";
     private static final String TEST_USER = "DrPleaseRespect";
 
-
-    private boolean Loaded = false;
     private static ListenerRegistration snapshot_listener = null;
-
+    private final Map<String, Boolean> Loader = new HashMap<>();
     private SharedPreferences sharedPref = null;
 
+    private List<MaterialButton> CategoryButtons = new ArrayList<>();
+
+    private boolean AllLoaded() {
+        for (Map.Entry<String, Boolean> entry : Loader.entrySet()) {
+            if (!entry.getValue()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     private void SetUserInfo(String ImageURL, String Username, String Email) {
 
@@ -68,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     Log.d(TAG, "Data Obtained From Firebase: " + data);
                     if (data != null) {
                         SetUserInfo((String) data.get("Image"), (String) data.get("Username"), (String) data.get("Email"));
-                        Loaded = true;
+                        Loader.put("Profile", true);
                     } else {
                         Log.d(TAG, "Data is null");
                         Log.d(TAG, "RESETTING OPTIONS");
@@ -92,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     Log.d(TAG, "Data Obtained From Firebase: " + data);
                     if (data != null) {
                         SetUserInfo((String) data.get("Image"), (String) data.get("Username"), (String) data.get("Email"));
-                        Loaded = true;
+                        Loader.put("Profile", true);
                     } else {
                         Log.d(TAG, "Data is null");
                         Log.d(TAG, "RESETTING OPTIONS");
@@ -120,9 +134,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Setup Loader States
+        Loader.put("Profile", false);
+        //Loader.put("Store", false);
+        Loader.put("Categories", false);
+
+
+        // Setup Shared Preferences
         sharedPref = getSharedPreferences(getString(R.string.ProfileState), MODE_PRIVATE);
 
-
+        // Setup Firebase Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Enable offline data persistence
@@ -144,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     @Override
                     public boolean onPreDraw() {
                         // Check whether the initial data is ready.
-                        if (Loaded) {
+                        if (AllLoaded()) {
                             // The content is ready. Start drawing.
                             content.getViewTreeObserver().removeOnPreDrawListener(this);
                             return true;
@@ -173,6 +194,38 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         RegisterProfileListener(query);
 
+
+        // Category Data Setup
+        db.collection("StoreData").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Log.d("Tag", document.getData().toString());
+                    MaterialButton materialbutton = new MaterialButton(this);
+                    materialbutton.setText((CharSequence) document.getData().get("Category".toString()));
+                    CategoryButtons.add(materialbutton);
+                }
+                LinearLayout buttonstuff = findViewById(R.id.CategoryLayout);
+                LinearLayout.LayoutParams layouts = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, getResources().getDisplayMetrics());
+                layouts.setMargins(margin, margin, 0,0);
+                for (MaterialButton button : CategoryButtons) {
+                    button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+                    button.setCornerRadius(20);
+                    button.setOnClickListener(v -> {
+                        Log.d(TAG, button.getText() + " Category Button Clicked");
+                        // Start DebuggingPage Activity
+                        //Intent intent = new Intent(this, StoreListing.class);
+                        //intent.putExtra("Category", button.getText());
+                        //startActivity(intent);
+                    });
+                    buttonstuff.addView(button, layouts);
+                }
+                Loader.put("Categories", true);
+            }
+        });
 
         // Profile Button
         findViewById(R.id.Profile).setOnClickListener(v -> {
