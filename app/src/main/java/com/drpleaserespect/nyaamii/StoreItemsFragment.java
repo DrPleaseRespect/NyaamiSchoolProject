@@ -3,7 +3,10 @@ package com.drpleaserespect.nyaamii;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
@@ -16,15 +19,16 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StoreItemsFragment extends Fragment {
 
-    public static class StoreItemsAdapter extends RecyclerView.Adapter<StoreItemsAdapter.ViewHolder> {
+    public static class StoreItemsAdapter extends ListAdapter<StoreItem,StoreItemsAdapter.ViewHolder> {
 
         public interface OnClickListener {
-            void onClick(int position, String item);
+            void onClick(int position, StoreItem item);
         }
-
-        private String[] localDataSet;
         private OnClickListener onClickListener;
 
         public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -53,9 +57,21 @@ public class StoreItemsFragment extends Fragment {
             }
         }
 
-        public StoreItemsAdapter(String[] dataSet) {
-            localDataSet = dataSet;
+        public StoreItemsAdapter() {
+            super(DIFF_CALLBACK);
         }
+
+        public static final DiffUtil.ItemCallback<StoreItem> DIFF_CALLBACK = new DiffUtil.ItemCallback<StoreItem>() {
+            @Override
+            public boolean areItemsTheSame(@NonNull StoreItem oldItem, @NonNull StoreItem newItem) {
+                return oldItem.equalsID(newItem);
+            }
+
+            @Override
+            public boolean areContentsTheSame(@NonNull StoreItem oldItem, @NonNull StoreItem newItem) {
+                return oldItem.equals(newItem);
+            }
+        };
 
         @Override
         public StoreItemsAdapter.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
@@ -67,20 +83,15 @@ public class StoreItemsFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-            viewHolder.getItemNameView().setText(localDataSet[position]);
-            viewHolder.getItemPriceView().setText(localDataSet[position]);
-            Glide.with(viewHolder.itemView).load("https://drpleaserespect-pi.stargazer-puffin.ts.net/files/yukari.png").into(viewHolder.getItemImageView());
+            viewHolder.getItemNameView().setText(getItem(position).getName());
+            viewHolder.getItemPriceView().setText(getItem(position).getPrice() + "PHP");
+            Glide.with(viewHolder.itemView).load(getItem(position).getImageUrl()).into(viewHolder.getItemImageView());
 
             viewHolder.itemView.setOnClickListener(v -> {
                 if (onClickListener != null) {
-                    onClickListener.onClick(position, localDataSet[position]);
+                    onClickListener.onClick(position, getItem(position));
                 }
             });
-        }
-
-        @Override
-        public int getItemCount() {
-            return localDataSet.length;
         }
 
         public void setOnClickListener(OnClickListener onClickListener) {
@@ -105,11 +116,19 @@ public class StoreItemsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         RecyclerView rec = view.findViewById(R.id.storeItemsRecyclerView);
         rec.setLayoutManager(new GridLayoutManager(getContext(), 2));
-        StoreItemsAdapter Shit = new StoreItemsAdapter(new String[]{"Item 1", "Item 2", "Item 3", "Item 4", "Item 5"});
-        Shit.setOnClickListener((pos, item) -> {
+
+
+        StoreItemViewModel viewModel = new ViewModelProvider(requireActivity()).get(StoreItemViewModel.class);
+        StoreItemsAdapter Adapter = new StoreItemsAdapter();
+
+
+        viewModel.getStoreItems().observe(getViewLifecycleOwner(), storeItems1 -> {
+            Adapter.submitList(storeItems1);
+        });
+
+        Adapter.setOnClickListener((pos, item) -> {
             Log.d("Tag", String.format("Item Pos: %s   ItemData: %s", pos, item));
         });
-        rec.setAdapter(Shit);
-        Log.d("Fuck", "FUCK");
+        rec.setAdapter(Adapter);
     }
 }

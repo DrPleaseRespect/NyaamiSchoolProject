@@ -1,9 +1,6 @@
 package com.drpleaserespect.nyaamii;
 
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -15,9 +12,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -25,7 +25,6 @@ import com.google.firebase.firestore.MemoryCacheSettings;
 import com.google.firebase.firestore.PersistentCacheSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private final Map<String, Boolean> Loader = new HashMap<>();
     private SharedPreferences sharedPref = null;
 
-    private List<MaterialButton> CategoryButtons = new ArrayList<>();
+    private final List<MaterialButton> CategoryButtons = new ArrayList<>();
 
     private boolean AllLoaded() {
         for (Map.Entry<String, Boolean> entry : Loader.entrySet()) {
@@ -168,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         if (AllLoaded()) {
                             // The content is ready. Start drawing.
                             content.getViewTreeObserver().removeOnPreDrawListener(this);
+
                             return true;
                         } else {
                             // The content isn't ready. Suspend.
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 for (QueryDocumentSnapshot document : task.getResult()) {
                     Log.d("Tag", document.getData().toString());
                     MaterialButton materialbutton = new MaterialButton(this);
-                    materialbutton.setText((CharSequence) document.getData().get("Category".toString()));
+                    materialbutton.setText((CharSequence) document.getData().get("Category"));
                     CategoryButtons.add(materialbutton);
                 }
                 LinearLayout buttonstuff = findViewById(R.id.CategoryLayout);
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         LinearLayout.LayoutParams.WRAP_CONTENT
                 );
                 int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, getResources().getDisplayMetrics());
-                layouts.setMargins(margin, margin, 0,0);
+                layouts.setMargins(margin, margin, 0, 0);
                 for (MaterialButton button : CategoryButtons) {
                     button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
                     button.setCornerRadius(20);
@@ -234,6 +234,32 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             // Start DebuggingPage Activity
             Intent intent = new Intent(this, ProfilePage.class);
             startActivity(intent);
+        });
+
+        // Initialize Main Store Fragment
+        StoreItemViewModel viewModel = new ViewModelProvider(this).get(StoreItemViewModel.class);
+
+
+        db.collectionGroup("Items").addSnapshotListener((queryDocumentSnapshots, e) -> {
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e);
+                return;
+            }
+            List<StoreItem> storeItems = new ArrayList<>();
+            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                if (doc != null && doc.exists()) {
+                    Map<String, Object> data = doc.getData();
+                    Log.d(TAG, "Data Obtained From Firebase: " + data);
+                    if (data != null) {
+                        int price = ((Number) data.getOrDefault("Price", 0)).intValue();
+                        String ImageURL = (String) data.getOrDefault("ImageURL", "https://picsum.photos/200");
+                        String ProductName = (String) data.getOrDefault("Name", "Placeholder");
+                        StoreItem item = new StoreItem(ProductName, price, ImageURL, doc.getId());
+                        storeItems.add(item);
+                    }
+                }
+            }
+            viewModel.setStoreItems(storeItems);
         });
 
 
