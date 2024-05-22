@@ -120,6 +120,7 @@ public class StoreItemsFragment extends Fragment {
 
         StoreItemViewModel viewModel = new ViewModelProvider(requireActivity()).get(StoreItemViewModel.class);
         StoreItemsAdapter Adapter = new StoreItemsAdapter();
+        rec.setAdapter(Adapter);
 
 
         viewModel.getStoreItems().observe(getViewLifecycleOwner(), storeItems1 -> {
@@ -129,6 +130,5 @@ public class StoreItemsFragment extends Fragment {
         Adapter.setOnClickListener((pos, item) -> {
             Log.d("Tag", String.format("Item Pos: %s   ItemData: %s", pos, item));
         });
-        rec.setAdapter(Adapter);
     }
 }

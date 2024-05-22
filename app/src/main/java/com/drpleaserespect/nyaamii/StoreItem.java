@@ -1,5 +1,9 @@
 package com.drpleaserespect.nyaamii;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+
+import java.util.Map;
+
 public class StoreItem {
     private final String name;
     private final int price;
@@ -15,12 +19,19 @@ public class StoreItem {
 
     }
 
+    public StoreItem(DocumentSnapshot firebaseDoc) {
+        Map<String, Object> data = firebaseDoc.getData();
+        this.name = (String) data.getOrDefault("Name", "Placeholder");
+        this.price = ((Number) data.getOrDefault("Price", 0)).intValue();
+        this.imageUrl = (String) data.getOrDefault("ImageURL", "https://picsum.photos/200");
+        this.documentId = firebaseDoc.getId();
+    }
+
     public StoreItem(String name, int price, String documentId) {
         this.name = name;
         this.price = price;
         this.imageUrl = "https://picsum.photos/500";
         this.documentId = documentId;
-
     }
 
     @Override

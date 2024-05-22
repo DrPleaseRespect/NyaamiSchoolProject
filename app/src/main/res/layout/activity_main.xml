@@ -80,12 +80,29 @@
 
     <View
         android:id="@+id/divider2"
-        android:layout_width="409dp"
+        android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
+
+    <EditText
+        android:id="@+id/SearchBar"
+        android:singleLine="true"
+        android:layout_width="0dp"
+        android:layout_height="41dp"
+        android:layout_weight="1"
+        android:layout_margin="5dp"
+        android:ems="10"
+        android:hint="Search"
+        android:drawableLeft="@drawable/search"
+        android:background="@drawable/edittext_frame"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
+
     <HorizontalScrollView
         android:id="@+id/CategoryScrollView"
         android:layout_width="match_parent"
@@ -94,7 +111,7 @@
         android:fillViewport="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider2">
+        app:layout_constraintTop_toBottomOf="@+id/SearchBar">
 
         <LinearLayout
             android:id="@+id/CategoryLayout"
@@ -109,7 +126,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:id="@+id/FragmentView"
-        android:name="com.drpleaserespect.nyaamii.StoreItemsFragment"
+        android:name="com.drpleaserespect.nyaamii.StoreItemsCarouselFragment"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

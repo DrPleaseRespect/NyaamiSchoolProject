@@ -8,6 +8,8 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,7 +19,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Filter;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -37,7 +44,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private static final String TAG = "MainActivity";
     private static final String TEST_USER = "DrPleaseRespect";
 
-    private static ListenerRegistration snapshot_listener = null;
+    private static ListenerRegistration user_snapshot_listener = null;
+    private static ListenerRegistration store_snapshot_listener = null;
     private final Map<String, Boolean> Loader = new HashMap<>();
     private SharedPreferences sharedPref = null;
 
@@ -52,9 +60,44 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         return true;
     }
 
+    private void CreateDataListener(StoreItemViewModel viewModel, String SearchQuery) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+
+        Query db_collection = db.collectionGroup("Items");
+
+
+        if (!SearchQuery.equals("")) {
+            db_collection = db_collection.whereGreaterThanOrEqualTo("searchName", SearchQuery)
+                    .whereLessThan("searchName", SearchQuery + "\uf8ff");
+        }
+
+
+        if (store_snapshot_listener != null) {
+            store_snapshot_listener.remove();
+        }
+        store_snapshot_listener = db_collection.addSnapshotListener((queryDocumentSnapshots, e) -> {
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e);
+                return;
+            }
+            List<StoreItem> storeItems = new ArrayList<>();
+            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                if (doc != null && doc.exists()) {
+                    Map<String, Object> data = doc.getData();
+                    Log.d(TAG, "Data Obtained From Firebase: " + data);
+                    if (data != null) {
+                        StoreItem item = new StoreItem(doc);
+                        storeItems.add(item);
+                    }
+                }
+            }
+            viewModel.setStoreItems(storeItems);
+        });
+
+    }
+
     private void SetUserInfo(String ImageURL, String Username, String Email) {
-
-
         // Set the user's Image
         ImageView imageView = findViewById(R.id.UserAvatar);
         Glide.with(this).load(ImageURL).into(imageView);
@@ -93,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
         });
         // Listener for Future Changes
-        snapshot_listener = queryRef.addSnapshotListener((query_snapshots, e) -> {
+        user_snapshot_listener = queryRef.addSnapshotListener((query_snapshots, e) -> {
             if (e != null) {
                 Log.w(TAG, "Listen failed.", e);
                 return;
@@ -133,14 +176,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Get the shared preferences
+        sharedPref = getSharedPreferences("com.drpleaserespect.nyaamii", MODE_PRIVATE);
+
         // Setup Loader States
         Loader.put("Profile", false);
         //Loader.put("Store", false);
         Loader.put("Categories", false);
-
-
-        // Setup Shared Preferences
-        sharedPref = getSharedPreferences(getString(R.string.ProfileState), MODE_PRIVATE);
 
         // Setup Firebase Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -201,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 for (QueryDocumentSnapshot document : task.getResult()) {
                     Log.d("Tag", document.getData().toString());
                     MaterialButton materialbutton = new MaterialButton(this);
-                    materialbutton.setText((CharSequence) document.getData().get("Category"));
+                    materialbutton.setText((CharSequence) document.getId());
                     CategoryButtons.add(materialbutton);
                 }
                 LinearLayout buttonstuff = findViewById(R.id.CategoryLayout);
@@ -216,10 +258,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     button.setCornerRadius(20);
                     button.setOnClickListener(v -> {
                         Log.d(TAG, button.getText() + " Category Button Clicked");
-                        // Start DebuggingPage Activity
-                        //Intent intent = new Intent(this, StoreListing.class);
-                        //intent.putExtra("Category", button.getText());
-                        //startActivity(intent);
+                        // Start CategoryActivity Activity
+                        Intent intent = new Intent(this, CategoryActivity.class);
+                        intent.putExtra("Category", button.getText());
+                        startActivity(intent);
                     });
                     buttonstuff.addView(button, layouts);
                 }
@@ -237,29 +279,53 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         });
 
         // Initialize Main Store Fragment
-        StoreItemViewModel viewModel = new ViewModelProvider(this).get(StoreItemViewModel.class);
+        StoreItemViewModel store_viewModel = new ViewModelProvider(this).get(StoreItemViewModel.class);
 
 
-        db.collectionGroup("Items").addSnapshotListener((queryDocumentSnapshots, e) -> {
-            if (e != null) {
-                Log.w(TAG, "Listen failed.", e);
-                return;
+        // Get the store items from DB and set it to the view model
+        CreateDataListener(store_viewModel, "");
+
+        // Search Functionality
+        EditText SearchBar = findViewById(R.id.SearchBar);
+        SearchBar.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        SearchBar.setOnClickListener(v -> SearchBar.setCursorVisible(true));
+        SearchBar.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                v.setCursorVisible(false);
+                CreateDataListener(store_viewModel, v.getText().toString().toLowerCase());
             }
-            List<StoreItem> storeItems = new ArrayList<>();
-            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                if (doc != null && doc.exists()) {
-                    Map<String, Object> data = doc.getData();
-                    Log.d(TAG, "Data Obtained From Firebase: " + data);
-                    if (data != null) {
-                        int price = ((Number) data.getOrDefault("Price", 0)).intValue();
-                        String ImageURL = (String) data.getOrDefault("ImageURL", "https://picsum.photos/200");
-                        String ProductName = (String) data.getOrDefault("Name", "Placeholder");
-                        StoreItem item = new StoreItem(ProductName, price, ImageURL, doc.getId());
-                        storeItems.add(item);
-                    }
+
+            return false;
+        });
+
+        // Carousel Data
+        // Get the store items from DB and set it to the view model
+        StoreItemsCarouselViewModel carousel_viewmodel = new ViewModelProvider(this).get(StoreItemsCarouselViewModel.class);
+        db.collection("FeaturedData").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    DocumentReference data = (DocumentReference) document.getData().get("Document");
+                    Log.d(TAG, data.toString());
+                    tasks.add(data.get());
                 }
+                Tasks.whenAllComplete(tasks).addOnCompleteListener(task1 -> {
+                    List<StoreItem> storeItems = new ArrayList<>();
+                    for (Task<?> document : task1.getResult()) {
+                        DocumentSnapshot document2 = (DocumentSnapshot) document.getResult();
+                        if (document2 != null && document2.exists()) {
+                            Map<String, Object> data = document2.getData();
+                            Log.d(TAG, "Data Obtained From Firebase: " + data);
+                            if (data != null) {
+                                StoreItem item = new StoreItem(document2);
+                                storeItems.add(item);
+                            }
+                        }
+                    }
+                    Log.d(TAG, "CarouselData : " + storeItems.toString());
+                    carousel_viewmodel.setStoreItems(storeItems);
+                });
             }
-            viewModel.setStoreItems(storeItems);
         });
 
 
