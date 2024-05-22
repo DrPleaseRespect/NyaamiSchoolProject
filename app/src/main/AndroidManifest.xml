@@ -13,15 +13,21 @@
         android:theme="@style/Theme.Nyamii"
         tools:targetApi="31">
         <activity
+            android:name=".TransactionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProductDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".CategoryActivity"
             android:exported="false"
             android:label="@string/title_activity_category"
             android:theme="@style/Theme.Nyamii" />
         <activity
-            android:name=".ProfilePage"
+            android:name=".ProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".DebuggingPage"
+            android:name=".DebuggingActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

@@ -17,7 +17,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DebuggingPage extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class DebuggingActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     public void onItemSelected(AdapterView<?> parent, View view,
                                int pos, long id) {

@@ -24,7 +24,6 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.Filter;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -47,17 +46,17 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private static ListenerRegistration user_snapshot_listener = null;
     private static ListenerRegistration store_snapshot_listener = null;
     private final Map<String, Boolean> Loader = new HashMap<>();
+    private final List<MaterialButton> CategoryButtons = new ArrayList<>();
     private SharedPreferences sharedPref = null;
 
-    private final List<MaterialButton> CategoryButtons = new ArrayList<>();
-
     private boolean AllLoaded() {
-        for (Map.Entry<String, Boolean> entry : Loader.entrySet()) {
-            if (!entry.getValue()) {
-                return false;
-            }
-        }
         return true;
+        //for (Map.Entry<String, Boolean> entry : Loader.entrySet()) {
+        //    if (!entry.getValue()) {
+        //        return false;
+        //    }
+        //}
+        //return true;
     }
 
     private void CreateDataListener(StoreItemViewModel viewModel, String SearchQuery) {
@@ -177,7 +176,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         setContentView(R.layout.activity_main);
 
         // Get the shared preferences
-        sharedPref = getSharedPreferences("com.drpleaserespect.nyaamii", MODE_PRIVATE);
+        sharedPref = getSharedPreferences(getString(R.string.ProfileState), MODE_PRIVATE);
+        sharedPref.registerOnSharedPreferenceChangeListener(this);
 
         // Setup Loader States
         Loader.put("Profile", false);
@@ -230,11 +230,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
 
         // Get the user's data from the Firebase Firestore
-        sharedPref.registerOnSharedPreferenceChangeListener(this);
 
-        Query query = FirebaseFirestore.getInstance().collection("UserData").whereEqualTo("Username", sharedPref.getString("User", "DrPleaseRespect"));
+        Query ProfileQuery = FirebaseFirestore.getInstance()
+                .collection("UserData")
+                .whereEqualTo("Username",
+                        sharedPref.getString("User", "DrPleaseRespect"));
 
-        RegisterProfileListener(query);
+        RegisterProfileListener(ProfileQuery);
 
 
         // Category Data Setup
@@ -274,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             // Open the Profile Activity
             Log.d(TAG, "Profile Button Clicked");
             // Start DebuggingPage Activity
-            Intent intent = new Intent(this, ProfilePage.class);
+            Intent intent = new Intent(this, ProfileActivity.class);
             startActivity(intent);
         });
 
@@ -289,6 +291,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         EditText SearchBar = findViewById(R.id.SearchBar);
         SearchBar.setImeOptions(EditorInfo.IME_ACTION_DONE);
         SearchBar.setOnClickListener(v -> SearchBar.setCursorVisible(true));
+        SearchBar.setImeActionLabel("Search", EditorInfo.IME_ACTION_DONE);
         SearchBar.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 v.setCursorVisible(false);
@@ -300,7 +303,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         // Carousel Data
         // Get the store items from DB and set it to the view model
-        StoreItemsCarouselViewModel carousel_viewmodel = new ViewModelProvider(this).get(StoreItemsCarouselViewModel.class);
+        StoreItemsCarouselViewModel carousel_viewModel = new ViewModelProvider(this)
+                .get(StoreItemsCarouselViewModel.class);
         db.collection("FeaturedData").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
@@ -323,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         }
                     }
                     Log.d(TAG, "CarouselData : " + storeItems.toString());
-                    carousel_viewmodel.setStoreItems(storeItems);
+                    carousel_viewModel.setStoreItems(storeItems);
                 });
             }
         });

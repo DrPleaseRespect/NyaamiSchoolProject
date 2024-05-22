@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class ProfilePage extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class ProfileActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private SharedPreferences sharedPref = null;
 
@@ -28,7 +28,7 @@ public class ProfilePage extends AppCompatActivity implements SharedPreferences.
 
         Button DebugButton = findViewById(R.id.DebugButton);
         DebugButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, DebuggingPage.class);
+            Intent intent = new Intent(this, DebuggingActivity.class);
             startActivity(intent);
         });
     }

@@ -14,12 +14,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +88,8 @@ public class CategoryActivity extends AppCompatActivity implements SharedPrefere
         setContentView(R.layout.activity_category);
 
         // Get Shared Preferences
-        sharedPref = getSharedPreferences("com.drpleaserespect.nyaamii", MODE_PRIVATE);
+        sharedPref = getSharedPreferences(getString(R.string.ProfileState), MODE_PRIVATE);
+        sharedPref.registerOnSharedPreferenceChangeListener(this);
 
         // Set the Avatar
         SetUserAvatar(sharedPref.getString("Image", "https://picsum.photos/200"));
@@ -108,12 +107,12 @@ public class CategoryActivity extends AppCompatActivity implements SharedPrefere
 
 
         // Get the store items from DB and set it to the view model
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         CreateDataListener(category, viewModel, "");
 
         // Search Functionality
         EditText SearchBar = findViewById(R.id.SearchBar);
         SearchBar.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        SearchBar.setImeActionLabel("Search", EditorInfo.IME_ACTION_DONE);
         SearchBar.setOnClickListener(v -> SearchBar.setCursorVisible(true));
         SearchBar.setOnEditorActionListener((v, actionId, event) -> {
             Log.d(TAG, "Action ID: " + actionId);
@@ -133,7 +132,7 @@ public class CategoryActivity extends AppCompatActivity implements SharedPrefere
         // Profile Button Functionality
         ImageView ProfileButton = findViewById(R.id.UserAvatar);
         ProfileButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ProfilePage.class);
+            Intent intent = new Intent(this, ProfileActivity.class);
             startActivity(intent);
         });
 
