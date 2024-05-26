@@ -1,8 +1,10 @@
-package com.drpleaserespect.nyaamii;
+package com.drpleaserespect.nyaamii.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+
+import com.drpleaserespect.nyaamii.R;
 
 public class TransactionActivity extends AppCompatActivity {
 

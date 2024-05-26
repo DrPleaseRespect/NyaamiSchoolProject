@@ -49,6 +49,9 @@ dependencies {
     implementation("org.imaginativeworld.whynotimagecarousel:whynotimagecarousel:2.1.0")
     implementation("me.relex:circleindicator:2.1.6")
 
+    // Shimmering
+    implementation("com.github.skydoves:androidveil:1.1.3")
+
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")

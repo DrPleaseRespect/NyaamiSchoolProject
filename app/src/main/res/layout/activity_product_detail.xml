@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ProductDetailActivity">
+    tools:context=".Activities.ProductDetailActivity">
 
     <LinearLayout
         android:id="@+id/TopBarLinearLayout"
@@ -40,37 +40,78 @@
             android:inputType="text"
             android:singleLine="true" />
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/UserAvatar"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="5dp"
+        <ImageView
+            android:id="@+id/CartButton"
+            android:layout_gravity="center_vertical"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="10dp"
             android:layout_marginEnd="4dp"
+            android:clickable="true"
             android:foreground="?attr/selectableItemBackground"
-            android:src="@drawable/ic_launcher_background"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-            tools:srcCompat="@tools:sample/avatars" />
+            android:src="@drawable/shopping_cart"/>
     </LinearLayout>
 
     <View
         android:id="@+id/divider2"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+
         android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/TopBarLinearLayout" />
 
-    <ImageView
-        android:id="@+id/imageView2"
+    <FrameLayout
+        android:id="@+id/ItemImageFrame"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintBottom_toTopOf="@+id/ItemName"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="12dp"
+
+        app:layout_constraintBottom_toTopOf="@+id/divider5"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider2"
-        app:layout_constraintVertical_bias="0.0"
-        tools:srcCompat="@mipmap/ic_launcher" />
+        app:layout_constraintTop_toBottomOf="@+id/divider2">
+
+        <ImageView
+            android:id="@+id/ItemImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            tools:srcCompat="@mipmap/ic_launcher" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/LoadingLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:visibility="gone">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true" />
+            </com.google.android.material.card.MaterialCardView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </FrameLayout>
+
+    <View
+        android:id="@+id/divider5"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="12dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toTopOf="@+id/ItemName"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
         android:id="@+id/ItemName"
@@ -78,6 +119,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginBottom="8dp"
+        android:textSize="30sp"
         app:layout_constraintBottom_toTopOf="@+id/ItemPrice"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Item Placeholder" />
@@ -87,7 +129,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="8dp"
+        android:textSize="22sp"
         app:layout_constraintBottom_toTopOf="@+id/ItemDescription"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Item Price Placeholder" />
@@ -97,7 +140,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="248dp"
+        android:layout_marginBottom="268dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Item Description Placeholder" />
@@ -124,11 +167,13 @@
             android:layout_weight="1" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/AddToCartButton"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="@string/add_to_cart"
             app:cornerRadius="5dp" />
 
     </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

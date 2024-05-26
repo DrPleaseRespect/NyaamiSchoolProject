@@ -1,4 +1,4 @@
-package com.drpleaserespect.nyaamii;
+package com.drpleaserespect.nyaamii.Activities;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.drpleaserespect.nyaamii.R;
 
 public class ProfileActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -23,7 +25,7 @@ public class ProfileActivity extends AppCompatActivity implements SharedPreferen
         SetData(sharedPref);
 
         // For back button use finish()
-        LinearLayout back = findViewById(R.id.ProfileButtonLinearLayout);
+        LinearLayout back = findViewById(R.id.CartButtonLinearLayout);
         back.setOnClickListener(v -> finish());
 
         Button DebugButton = findViewById(R.id.DebugButton);

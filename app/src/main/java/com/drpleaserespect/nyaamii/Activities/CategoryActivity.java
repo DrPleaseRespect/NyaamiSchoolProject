@@ -1,4 +1,4 @@
-package com.drpleaserespect.nyaamii;
+package com.drpleaserespect.nyaamii.Activities;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +14,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.drpleaserespect.nyaamii.R;
+import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.ViewModels.StoreItemViewModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -30,6 +33,20 @@ public class CategoryActivity extends AppCompatActivity implements SharedPrefere
 
     private SharedPreferences sharedPref = null;
 
+
+    protected void SetUserAvatar(String ImageURL) {
+        ImageView ProfileImage = findViewById(R.id.UserAvatar);
+        if (ProfileImage != null) {
+            Glide.with(this)
+                    .load(ImageURL)
+                    .into(ProfileImage);
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
+        SetUserAvatar(sharedPreferences.getString("Image", "https://picsum.photos/200"));
+    }
 
     private void CreateDataListener(String Category, StoreItemViewModel viewModel, String SearchQuery) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -70,18 +87,6 @@ public class CategoryActivity extends AppCompatActivity implements SharedPrefere
 
     }
 
-    private void SetUserAvatar(String ImageURL) {
-        ImageView ProfileImage = findViewById(R.id.UserAvatar);
-        if (ProfileImage != null) {
-            Glide.with(this)
-                    .load(ImageURL)
-                    .into(ProfileImage);
-        }
-    }
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
-        SetUserAvatar(sharedPreferences.getString("Image", "https://picsum.photos/200"));
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

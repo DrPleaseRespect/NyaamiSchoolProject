@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".TransactionActivity">
+    tools:context=".Activities.TransactionActivity">
 
     <LinearLayout
-        android:id="@+id/ProfileButtonLinearLayout"
+        android:id="@+id/CartButtonLinearLayout"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:padding="4dp"
@@ -41,7 +41,7 @@
         android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ProfileButtonLinearLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/CartButtonLinearLayout" />
 
     <TextView
         android:id="@+id/ShippingInfoLabel"

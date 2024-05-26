@@ -1,4 +1,4 @@
-package com.drpleaserespect.nyaamii;
+package com.drpleaserespect.nyaamii.Activities;
 
 
 import android.content.Intent;
@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,6 +18,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
+import com.drpleaserespect.nyaamii.DataObjects.Loader;
+import com.drpleaserespect.nyaamii.R;
+import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.ViewModels.LoaderViewModel;
+import com.drpleaserespect.nyaamii.ViewModels.StoreItemViewModel;
+import com.drpleaserespect.nyaamii.ViewModels.StoreItemsCarouselViewModel;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.button.MaterialButton;
@@ -45,19 +50,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private static ListenerRegistration user_snapshot_listener = null;
     private static ListenerRegistration store_snapshot_listener = null;
-    private final Map<String, Boolean> Loader = new HashMap<>();
+    private Loader loader_obj = null;
+
+    private LoaderViewModel loaderViewModel = null;
     private final List<MaterialButton> CategoryButtons = new ArrayList<>();
     private SharedPreferences sharedPref = null;
-
-    private boolean AllLoaded() {
-        return true;
-        //for (Map.Entry<String, Boolean> entry : Loader.entrySet()) {
-        //    if (!entry.getValue()) {
-        //        return false;
-        //    }
-        //}
-        //return true;
-    }
 
     private void CreateDataListener(StoreItemViewModel viewModel, String SearchQuery) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -123,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     Log.d(TAG, "Data Obtained From Firebase: " + data);
                     if (data != null) {
                         SetUserInfo((String) data.get("Image"), (String) data.get("Username"), (String) data.get("Email"));
-                        Loader.put("Profile", true);
+                        loader_obj.setLoaded("Profile");
                     } else {
                         Log.d(TAG, "Data is null");
                         Log.d(TAG, "RESETTING OPTIONS");
@@ -135,6 +132,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
         });
         // Listener for Future Changes
+        if (user_snapshot_listener != null) {
+            user_snapshot_listener.remove();
+        }
         user_snapshot_listener = queryRef.addSnapshotListener((query_snapshots, e) -> {
             if (e != null) {
                 Log.w(TAG, "Listen failed.", e);
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     Log.d(TAG, "Data Obtained From Firebase: " + data);
                     if (data != null) {
                         SetUserInfo((String) data.get("Image"), (String) data.get("Username"), (String) data.get("Email"));
-                        Loader.put("Profile", true);
+                        loader_obj.setLoaded("Profile");
                     } else {
                         Log.d(TAG, "Data is null");
                         Log.d(TAG, "RESETTING OPTIONS");
@@ -175,14 +175,28 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize Loader
+        loader_obj = new Loader(new String[] {"Profile", "Categories"} );
+
+
+        // Get the loader view model
+        loaderViewModel = new ViewModelProvider(this).get(LoaderViewModel.class);
+
+        loader_obj.setListener(new Loader.Listener() {
+            @Override
+            public void onLoaded(String object) {
+
+            }
+
+            @Override
+            public void onAllLoaded() {
+                loaderViewModel.setStatus(true);
+            }
+        });
         // Get the shared preferences
         sharedPref = getSharedPreferences(getString(R.string.ProfileState), MODE_PRIVATE);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
 
-        // Setup Loader States
-        Loader.put("Profile", false);
-        //Loader.put("Store", false);
-        Loader.put("Categories", false);
 
         // Setup Firebase Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -197,26 +211,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                                 .build())
                         .build();
         db.setFirestoreSettings(settings);
-
-        // Prevent the UI from rendering until the data is loaded
-        // Set up an OnPreDrawListener to the root view.
-        final View content = findViewById(android.R.id.content);
-        content.getViewTreeObserver().addOnPreDrawListener(
-                new ViewTreeObserver.OnPreDrawListener() {
-                    @Override
-                    public boolean onPreDraw() {
-                        // Check whether the initial data is ready.
-                        if (AllLoaded()) {
-                            // The content is ready. Start drawing.
-                            content.getViewTreeObserver().removeOnPreDrawListener(this);
-
-                            return true;
-                        } else {
-                            // The content isn't ready. Suspend.
-                            return false;
-                        }
-                    }
-                });
 
 
         // Initialize Debug Preferences
@@ -267,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     });
                     buttonstuff.addView(button, layouts);
                 }
-                Loader.put("Categories", true);
+                loader_obj.setLoaded("Categories");
             }
         });
 

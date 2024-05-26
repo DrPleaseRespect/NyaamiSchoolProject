@@ -1,4 +1,4 @@
-package com.drpleaserespect.nyaamii;
+package com.drpleaserespect.nyaamii.Fragments;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,9 +19,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.drpleaserespect.nyaamii.Activities.ProductDetailActivity;
+import com.drpleaserespect.nyaamii.R;
+import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.ViewModels.StoreItemViewModel;
 
 public class StoreItemsFragment extends Fragment {
 
@@ -41,7 +43,7 @@ public class StoreItemsFragment extends Fragment {
                 super(view);
                 ItemName = view.findViewById(R.id.ItemName);
                 Price = view.findViewById(R.id.ItemPrice);
-                ItemImage = view.findViewById(R.id.imageView);
+                ItemImage = view.findViewById(R.id.CartImage);
             }
 
             public TextView getItemNameView() {
@@ -84,7 +86,7 @@ public class StoreItemsFragment extends Fragment {
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, final int position) {
             viewHolder.getItemNameView().setText(getItem(position).getName());
-            viewHolder.getItemPriceView().setText(getItem(position).getPrice() + "PHP");
+            viewHolder.getItemPriceView().setText(getItem(position).getPriceString());
             Glide.with(viewHolder.itemView).load(getItem(position).getImageUrl()).into(viewHolder.getItemImageView());
 
             viewHolder.itemView.setOnClickListener(v -> {
@@ -129,6 +131,11 @@ public class StoreItemsFragment extends Fragment {
 
         Adapter.setOnClickListener((pos, item) -> {
             Log.d("Tag", String.format("Item Pos: %s   ItemData: %s", pos, item));
+
+            // Start Intent to ProductDetailActivity
+            Intent intent = new Intent(requireContext(), ProductDetailActivity.class);
+            intent.putExtra("StoreItem", item);
+            startActivity(intent);
         });
     }
 }
