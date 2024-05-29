@@ -61,7 +61,7 @@
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
         android:layout_marginBottom="4dp"
-        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintBottom_toTopOf="@+id/CheckoutButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -85,7 +85,7 @@
         android:layout_marginStart="8dp"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="@+id/TotalLabel"
-        app:layout_constraintEnd_toStartOf="@+id/button"
+        app:layout_constraintEnd_toStartOf="@+id/CheckoutButton"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/TotalLabel"
         app:layout_constraintTop_toTopOf="@+id/TotalLabel"
@@ -93,7 +93,7 @@
         tools:text="100PHP" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/button"
+        android:id="@+id/CheckoutButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"

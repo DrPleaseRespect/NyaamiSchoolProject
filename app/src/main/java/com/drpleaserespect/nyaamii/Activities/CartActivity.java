@@ -1,5 +1,6 @@
 package com.drpleaserespect.nyaamii.Activities;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +13,9 @@ import androidx.lifecycle.ViewModelProvider;
 import com.drpleaserespect.nyaamii.DataObjects.OrderObject;
 import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
 import com.drpleaserespect.nyaamii.R;
+import com.drpleaserespect.nyaamii.R.id;
+import com.drpleaserespect.nyaamii.R.layout;
+import com.drpleaserespect.nyaamii.R.string;
 import com.drpleaserespect.nyaamii.ViewModels.OrdersViewModel;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -41,24 +45,21 @@ public class CartActivity extends AppCompatActivity {
                 String docid = task.getResult().getDocuments().get(0).getId();
                 CollectionReference cart = db.collection("UserData").document(docid).collection("Cart");
                 cart.get().addOnCompleteListener(task1 -> {
-                    if (task1.isSuccessful()) {
-                        for (DocumentSnapshot doc : task1.getResult()) {
-                            if (orders.isEmpty()) {
-                                cart.document(doc.getId()).delete();
-                                continue;
+                    if (task1.isSuccessful()) for (DocumentSnapshot doc : task1.getResult()) {
+                        if (orders.isEmpty()) {
+                            cart.document(doc.getId()).delete();
+                            continue;
+                        }
+                        boolean found = false;
+                        for (OrderObject order : orders)
+                            if (order.getDocumentId().equals(doc.getId())) {
+                                Log.d(TAG, "SaveCart: " + order.getDocumentId() + " != " + doc.getId());
+                                found = true;
+                                cart.document(doc.getId()).update("Quantity", order.getQuantity());
                             }
-                            boolean found = false;
-                            for (OrderObject order : orders) {
-                                if (order.getDocumentId().equals(doc.getId())) {
-                                    Log.d(TAG, "SaveCart: " + order.getDocumentId() + " != " + doc.getId());
-                                    found = true;
-                                    cart.document(doc.getId()).update("Quantity", order.getQuantity());
-                                }
-                            }
-                            if (!found) {
-                                Log.d(TAG, "SaveCart: " + "Deleting Item" + " " + doc.getId());
-                                cart.document(doc.getId()).delete();
-                            }
+                        if (!found) {
+                            Log.d(TAG, "SaveCart: " + "Deleting Item" + ' ' + doc.getId());
+                            cart.document(doc.getId()).delete();
                         }
                     }
                 });
@@ -68,13 +69,13 @@ public class CartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_cart);
+        setContentView(layout.activity_cart);
 
         // Get the ViewModel
         OrdersViewModel ordersViewModel = new ViewModelProvider(this).get(OrdersViewModel.class);
 
         // Get the Shared Preferences
-        sharedPref = getSharedPreferences(getString(R.string.ProfileState), MODE_PRIVATE);
+        sharedPref = getSharedPreferences(getString(string.ProfileState), MODE_PRIVATE);
 
 
         // Firebase Firestore
@@ -82,20 +83,14 @@ public class CartActivity extends AppCompatActivity {
         db.collection("UserData").whereEqualTo("Username", sharedPref.getString("User", "DrPleaseRespect")).limit(1).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 String docid = task.getResult().getDocuments().get(0).getId();
-                if (CartListener != null) {
-                    CartListener.remove();
-                }
+                if (CartListener != null) CartListener.remove();
                 CartListener = db.collection("UserData").document(docid).collection("Cart").addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        return;
-                    }
+                    if (error != null) return;
                     List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
                     List<OrderObject> orders = new ArrayList<>();
                     for (DocumentSnapshot doc : value.getDocuments()) {
                         DocumentReference docref = doc.getDocumentReference("Item");
-                        if (docref == null) {
-                            continue;
-                        }
+                        if (docref == null) continue;
                         Task<DocumentSnapshot> doctask = docref.get();
 
 
@@ -122,7 +117,7 @@ public class CartActivity extends AppCompatActivity {
         });
 
         // Back Button Functionality
-        findViewById(R.id.CartButtonLinearLayout).setOnClickListener(v -> {
+        findViewById(id.CartButtonLinearLayout).setOnClickListener(v -> {
             boolean verified = false;
 
             SaveCart(db, ordersViewModel.getOrders().getValue());
@@ -130,16 +125,15 @@ public class CartActivity extends AppCompatActivity {
         });
 
         // Text Animation
-        TextView totalNum = findViewById(R.id.TotalNumber);
+        TextView totalNum = findViewById(id.TotalNumber);
         totalNum.setAlpha(0.0f);
         ViewPropertyAnimator animator = totalNum.animate().alpha(1.0f).setDuration(500).setStartDelay(500);
 
         // Total Price Calculation
         ordersViewModel.getOrders().observe(this, orders -> {
             float total = 0;
-            for (OrderObject order : orders) {
+            for (OrderObject order : orders)
                 total += order.getItem().getPrice() * order.getQuantity();
-            }
 
             String CurrencySuffix = StoreItem.getCurrencySuffix();
             totalNum
@@ -151,12 +145,18 @@ public class CartActivity extends AppCompatActivity {
                                     CurrencySuffix
                             )
                     );
-            if (totalNum.getAlpha() == 0.0f) {
-                animator.start();
-            }
+            if (totalNum.getAlpha() == 0.0f) animator.start();
         });
 
-
+        // Checkout Button Functionality
+        findViewById(id.CheckoutButton).setOnClickListener(v -> {
+            // Save the cart to the database
+            SaveCart(db, ordersViewModel.getOrders().getValue());
+            // Create Intent
+            Intent intent = new Intent(this, TransactionActivity.class);
+            // Start the transaction activity
+            startActivity(intent);
+        });
 
     }
 }

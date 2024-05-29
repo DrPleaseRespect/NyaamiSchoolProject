@@ -6,6 +6,8 @@
     <!-- Strings used for fragments for navigation -->
     <string name="next">Next</string>
     <string name="previous">Previous</string>
+    <string name="AddedToCartText">Added to Cart!</string>
+    <string name="AlreadyInCartText">Already in Cart! Added to Quantity!</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
@@ -50,4 +52,9 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="checkout">Checkout</string>
     <string name="total">Total:</string>
+    <string name="search">Search</string>
+    <string name="name_placeholder">Name:</string>
+    <string name="number_placeholder">Number:</string>
+    <string name="address_placeholder">Address:</string>
+    <string name="shipping_information">Shipping Information:</string>
 </resources>

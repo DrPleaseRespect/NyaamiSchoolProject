@@ -15,13 +15,18 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.DiffUtil.ItemCallback;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.drpleaserespect.nyaamii.DataObjects.OrderObject;
+import com.drpleaserespect.nyaamii.Fragments.OrdersFragment.OrdersAdapter.OnClickListener;
+import com.drpleaserespect.nyaamii.Fragments.OrdersFragment.OrdersAdapter.ViewHolder;
 import com.drpleaserespect.nyaamii.R;
+import com.drpleaserespect.nyaamii.R.id;
+import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.ViewModels.LoaderViewModel;
 import com.drpleaserespect.nyaamii.ViewModels.OrdersViewModel;
 import com.google.android.material.card.MaterialCardView;
@@ -42,7 +47,7 @@ public class OrdersFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_orders, container, false);
+        return inflater.inflate(layout.fragment_orders, container, false);
     }
 
     @Override
@@ -52,7 +57,7 @@ public class OrdersFragment extends Fragment {
         LoaderViewModel loaderViewModel = new ViewModelProvider(requireActivity()).get(LoaderViewModel.class);
 
 
-        RecyclerView rec = view.findViewById(R.id.OrdersRecyclerView);
+        RecyclerView rec = view.findViewById(id.OrdersRecyclerView);
         rec.setLayoutManager(
                 new LinearLayoutManager(
                         requireContext(),
@@ -82,9 +87,9 @@ public class OrdersFragment extends Fragment {
     }
 
     private void InitAdapter(OrdersAdapter Adapter, OrdersViewModel viewModel) {
-        Adapter.setOnClickListener(new OrdersAdapter.OnClickListener() {
+        Adapter.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClickClose(OrdersAdapter.ViewHolder viewHolder, OrderObject orderObject) {
+            public void onClickClose(ViewHolder viewHolder, OrderObject orderObject) {
                 List<OrderObject> List = viewModel.getOrders().getValue();
                 try {
                     List.remove(orderObject);
@@ -96,7 +101,7 @@ public class OrdersFragment extends Fragment {
             }
 
             @Override
-            public void onClickQuantityAdd(OrdersAdapter.ViewHolder viewHolder, OrderObject orderObject) {
+            public void onClickQuantityAdd(ViewHolder viewHolder, OrderObject orderObject) {
 
                 List<OrderObject> List = viewModel.getOrders().getValue();
                 OrderObject new_order = new OrderObject(orderObject, orderObject.getQuantity() + 1);
@@ -107,22 +112,19 @@ public class OrdersFragment extends Fragment {
             }
 
             @Override
-            public void onClickQuantityRemove(OrdersAdapter.ViewHolder viewHolder, OrderObject orderObject) {
+            public void onClickQuantityRemove(ViewHolder viewHolder, OrderObject orderObject) {
 
                 List<OrderObject> list = viewModel.getOrders().getValue();
                 OrderObject Order = orderObject;
                 OrderObject new_order = new OrderObject(Order, Order.getQuantity() - 1);
-                if (new_order.getQuantity() <= 0) {
-                    list.remove(orderObject);
-                } else {
-                    list.set(viewHolder.getBindingAdapterPosition(), new_order);
-                }
+                if (new_order.getQuantity() <= 0) list.remove(orderObject);
+                else list.set(viewHolder.getBindingAdapterPosition(), new_order);
                 Log.d(TAG, "onClickQuantityRemove: " + list);
                 viewModel.setOrders(list);
             }
 
             @Override
-            public void onEditQuantity(OrdersAdapter.ViewHolder viewHolder, OrderObject orderObject, String quantity) {
+            public void onEditQuantity(ViewHolder viewHolder, OrderObject orderObject, String quantity) {
                 // Turn quantity into an integer
                 int quantity_int;
                 try {
@@ -135,20 +137,17 @@ public class OrdersFragment extends Fragment {
                 List<OrderObject> List = viewModel.getOrders().getValue();
                 OrderObject Order = orderObject;
                 OrderObject new_order = new OrderObject(Order, quantity_int);
-                if (new_order.getQuantity() <= 0) {
-                    List.remove(orderObject);
-                } else {
-                    List.set(viewHolder.getBindingAdapterPosition(), new_order);
-                }
+                if (new_order.getQuantity() <= 0) List.remove(orderObject);
+                else List.set(viewHolder.getBindingAdapterPosition(), new_order);
                 Log.d(TAG, "onEditQuantity: " + List);
                 viewModel.setOrders(List);
             }
         });
     }
 
-    public static class OrdersAdapter extends ListAdapter<OrderObject, OrdersAdapter.ViewHolder> {
+    public static class OrdersAdapter extends ListAdapter<OrderObject, ViewHolder> {
 
-        public static final DiffUtil.ItemCallback<OrderObject> DIFF_CALLBACK = new DiffUtil.ItemCallback<OrderObject>() {
+        public static final ItemCallback<OrderObject> DIFF_CALLBACK = new ItemCallback<OrderObject>() {
             @Override
             public boolean areItemsTheSame(@NonNull OrderObject oldItem, @NonNull OrderObject newItem) {
                 //Log.d(TAG, "areItemsTheSame: " + oldItem.getItem().equalsID(newItem.getItem()));
@@ -175,15 +174,15 @@ public class OrdersFragment extends Fragment {
         }
 
         @Override
-        public OrdersAdapter.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
             View view = LayoutInflater.from(viewGroup.getContext())
-                    .inflate(R.layout.layout_storeitemcart, viewGroup, false);
+                    .inflate(layout.layout_storeitemcart, viewGroup, false);
 
-            return new OrdersAdapter.ViewHolder(view);
+            return new ViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(OrdersAdapter.ViewHolder viewHolder, final int position) {
+        public void onBindViewHolder(ViewHolder viewHolder, final int position) {
             OrderObject orderObject = getItem(position);
             viewHolder.getItemNameView().setText(orderObject.getItem().getName());
             viewHolder.getItemPriceView().setText(orderObject.getItem().getPriceString());
@@ -198,31 +197,23 @@ public class OrdersFragment extends Fragment {
             }
 
             viewHolder.getCloseButton().setOnClickListener(v -> {
-                if (onClickListener != null) {
-                    onClickListener.onClickClose(viewHolder, orderObject);
-
-                }
+                if (onClickListener != null) onClickListener.onClickClose(viewHolder, orderObject);
             });
             viewHolder.getQuantityAddButton().setOnClickListener(v -> {
-                if (onClickListener != null) {
+                if (onClickListener != null)
                     onClickListener.onClickQuantityAdd(viewHolder, orderObject);
-                }
             });
             viewHolder.getQuantityRemoveButton().setOnClickListener(v -> {
-                if (onClickListener != null) {
+                if (onClickListener != null)
                     onClickListener.onClickQuantityRemove(viewHolder, orderObject);
-                }
             });
             viewHolder.getItemQuantityView().setOnEditorActionListener((v, actionId, event) -> {
                 Log.d(TAG, "onBindViewHolder: EditorActionListener: " + actionId);
-                if ((actionId == EditorInfo.IME_ACTION_NEXT) || (actionId == EditorInfo.IME_ACTION_DONE)) {
-                    if (onClickListener != null) {
-                        onClickListener.onEditQuantity(
-                                viewHolder, orderObject,
-                                v.getText().toString()
-                                );
-                    }
-                }
+                if (actionId == EditorInfo.IME_ACTION_NEXT || actionId == EditorInfo.IME_ACTION_DONE)
+                    if (onClickListener != null) onClickListener.onEditQuantity(
+                            viewHolder, orderObject,
+                            v.getText().toString()
+                    );
                 return true;
             });
         }
@@ -232,13 +223,13 @@ public class OrdersFragment extends Fragment {
         }
 
         public interface OnClickListener {
-            void onClickClose(OrdersAdapter.ViewHolder viewHolder, OrderObject orderObject);
+            void onClickClose(ViewHolder viewHolder, OrderObject orderObject);
 
-            void onClickQuantityAdd(OrdersAdapter.ViewHolder viewHolder, OrderObject orderObject);
+            void onClickQuantityAdd(ViewHolder viewHolder, OrderObject orderObject);
 
-            void onClickQuantityRemove(OrdersAdapter.ViewHolder viewHolder, OrderObject orderObject);
+            void onClickQuantityRemove(ViewHolder viewHolder, OrderObject orderObject);
 
-            void onEditQuantity(OrdersAdapter.ViewHolder viewHolder, OrderObject orderObject, String quantity);
+            void onEditQuantity(ViewHolder viewHolder, OrderObject orderObject, String quantity);
         }
 
         public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -254,14 +245,14 @@ public class OrdersFragment extends Fragment {
 
             public ViewHolder(View view) {
                 super(view);
-                ItemImageView = view.findViewById(R.id.ItemImage);
-                ItemNameView = view.findViewById(R.id.ItemName);
-                ItemPriceView = view.findViewById(R.id.ItemPrice);
-                ItemQuantityView = view.findViewById(R.id.QuantityEditText);
-                CloseButton = view.findViewById(R.id.CloseButton);
-                QuantityAddButton = view.findViewById(R.id.QuantityAddButton);
-                QuantityRemoveButton = view.findViewById(R.id.QuantityRemoveButton);
-                QuantityLayout = view.findViewById(R.id.QuantityCardView);
+                ItemImageView = view.findViewById(id.ItemImage);
+                ItemNameView = view.findViewById(id.ItemName);
+                ItemPriceView = view.findViewById(id.ItemPrice);
+                ItemQuantityView = view.findViewById(id.QuantityEditText);
+                CloseButton = view.findViewById(id.CloseButton);
+                QuantityAddButton = view.findViewById(id.QuantityAddButton);
+                QuantityRemoveButton = view.findViewById(id.QuantityRemoveButton);
+                QuantityLayout = view.findViewById(id.QuantityCardView);
             }
 
             public ImageView getItemImageView() {

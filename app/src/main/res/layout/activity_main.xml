@@ -60,7 +60,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
-                android:text="Username"
+                tools:text="Username"
                 android:textSize="15sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/UserAvatar"
@@ -99,8 +99,8 @@
         android:layout_weight="1"
         android:layout_margin="5dp"
         android:ems="10"
-        android:hint="Search"
-        android:drawableLeft="@drawable/search"
+        android:hint="@string/search"
+        android:drawableStart="@drawable/search"
         android:background="@drawable/edittext_frame"
         android:inputType="text"
         app:layout_constraintEnd_toEndOf="parent"
@@ -119,10 +119,10 @@
 
         <LinearLayout
             android:id="@+id/CategoryLayout"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:orientation="horizontal"></LinearLayout>
+            android:orientation="horizontal"/>
     </HorizontalScrollView>
 
 

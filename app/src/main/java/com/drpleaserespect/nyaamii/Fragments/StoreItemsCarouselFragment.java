@@ -16,6 +16,8 @@ import androidx.viewbinding.ViewBinding;
 import com.drpleaserespect.nyaamii.Activities.ProductDetailActivity;
 import com.drpleaserespect.nyaamii.R;
 import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.R.id;
+import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemsCarouselViewModel;
 
 import org.imaginativeworld.whynotimagecarousel.ImageCarousel;
@@ -28,12 +30,12 @@ import java.util.List;
 public class StoreItemsCarouselFragment extends Fragment {
     private final String TAG = "StoreItemsCarouselFragment";
     public StoreItemsCarouselFragment() {
-        super(R.layout.fragment_store_items_carousel);
+        super(layout.fragment_store_items_carousel);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        ImageCarousel carousel = view.findViewById(R.id.carousel);
+        ImageCarousel carousel = view.findViewById(id.carousel);
         carousel.registerLifecycle(getViewLifecycleOwner());
         StoreItemsCarouselViewModel viewModel = new ViewModelProvider(requireActivity()).get(StoreItemsCarouselViewModel.class);
         viewModel.getStoreItems().observe(getViewLifecycleOwner(), storeItems -> {

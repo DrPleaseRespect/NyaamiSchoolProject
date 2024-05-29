@@ -5,9 +5,9 @@ import android.util.Log;
 import java.util.Objects;
 
 public class OrderObject {
-    private StoreItem item;
-    private int quantity;
-    private String DocumentId;
+    private final StoreItem item;
+    private final int quantity;
+    private final String DocumentId;
 
     public OrderObject(StoreItem item, int quantity, String DocumentId) {
         this.item = item;
@@ -25,12 +25,12 @@ public class OrderObject {
         if (quantity < 0) {
             Log.d("OrderObject", "Quantity cannot be negative");
             return 0;
-        } else if (quantity > 100) {
+        }
+        if (quantity > 100) {
             Log.d("OrderObject", "Quantity cannot be greater than 100");
             return 100;
-        } else {
-            return quantity;
         }
+        return quantity;
     }
 
     public StoreItem getItem() {
@@ -55,10 +55,14 @@ public class OrderObject {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if ((o == null) || (getClass() != o.getClass())) {
+            return false;
+        }
         OrderObject that = (OrderObject) o;
-        return getQuantity() == that.getQuantity() && Objects.equals(getItem(), that.getItem()) && Objects.equals(DocumentId, that.DocumentId) && Objects.equals(getDocumentId(), that.getDocumentId());
+        return (getQuantity() == that.getQuantity()) && Objects.equals(getItem(), that.getItem()) && Objects.equals(DocumentId, that.DocumentId) && Objects.equals(getDocumentId(), that.getDocumentId());
     }
 
     @Override

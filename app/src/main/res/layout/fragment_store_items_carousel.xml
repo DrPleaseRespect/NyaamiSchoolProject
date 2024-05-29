@@ -21,6 +21,7 @@
             android:layout_height="256dp"
             app:infiniteCarousel="true"
             app:autoPlay="true"
+            app:imagePlaceholder="@color/black"
 
             />
 

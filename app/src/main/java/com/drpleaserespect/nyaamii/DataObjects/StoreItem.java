@@ -75,10 +75,14 @@ public class StoreItem implements Parcelable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if ((o == null) || (getClass() != o.getClass())) {
+            return false;
+        }
         StoreItem storeItem = (StoreItem) o;
-        return name.equals(storeItem.name) && price == storeItem.price && imageUrl.equals(storeItem.imageUrl);
+        return name.equals(storeItem.name) && (price == storeItem.price) && imageUrl.equals(storeItem.imageUrl);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.drpleaserespect.nyaamii.Fragments;
 
 import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
 
@@ -16,6 +17,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.drpleaserespect.nyaamii.R;
+import com.drpleaserespect.nyaamii.R.id;
+import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.ViewModels.LoaderViewModel;
 
 public class LoadingFragment extends Fragment {
@@ -23,14 +26,14 @@ public class LoadingFragment extends Fragment {
     public final String TAG = "LoadingFragment";
     private final ObjectAnimator alpha_animator = null;
     public LoadingFragment() {
-        super(R.layout.fragment_loading);
+        super(layout.fragment_loading);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_loading, container, false);
+        View view = inflater.inflate(layout.fragment_loading, container, false);
         return view;
     }
 
@@ -38,21 +41,21 @@ public class LoadingFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d(TAG, "Loading Fragment is ACTIVE");
-        ConstraintLayout layout = view.findViewById(R.id.LoadingLayout);
-        View background = view.findViewById(R.id.LoadingBackground);
+        ConstraintLayout layout = view.findViewById(id.LoadingLayout);
+        View background = view.findViewById(id.LoadingBackground);
         LoaderViewModel viewModel = new ViewModelProvider(requireActivity()).get(LoaderViewModel.class);
 
         ObjectAnimator alpha_animator = ObjectAnimator.ofFloat(layout, "alpha", 1.0f, 0.0f);
         alpha_animator.setDuration(300);
         alpha_animator.setStartDelay(500);
-        alpha_animator.addListener(new android.animation.Animator.AnimatorListener() {
+        alpha_animator.addListener(new AnimatorListener() {
             @Override
-            public void onAnimationStart(android.animation.Animator animation) {
+            public void onAnimationStart(Animator animation) {
                 layout.setVisibility(View.VISIBLE);
             }
 
             @Override
-            public void onAnimationEnd(android.animation.Animator animation) {
+            public void onAnimationEnd(Animator animation) {
                 layout.setVisibility(View.GONE);
             }
 
@@ -69,9 +72,7 @@ public class LoadingFragment extends Fragment {
 
         viewModel.getLoadedObjects().observe(getViewLifecycleOwner(), loaded -> {
             Log.d(TAG, "onViewCreated: LOADED STATUS: " + loaded);
-            if (loaded) {
-                alpha_animator.start();
-            }
+            if (loaded) alpha_animator.start();
         });
 
 

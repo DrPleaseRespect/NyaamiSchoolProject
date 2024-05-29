@@ -17,17 +17,43 @@
         android:layout_height="match_parent"
         >
 
-
-        <ImageView
-            android:id="@+id/CartImage"
+        <FrameLayout
+            android:id="@+id/CartImageLayout"
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintDimensionRatio="H,1:1"
             app:layout_constraintBottom_toTopOf="@+id/ItemName"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@mipmap/ic_launcher" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/LoadingLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:visibility="visible">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="true" />
+                </com.google.android.material.card.MaterialCardView>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <ImageView
+                android:id="@+id/CartImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:srcCompat="@mipmap/ic_launcher" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/ItemName"
@@ -37,13 +63,13 @@
             android:singleLine="true"
             android:ellipsize="end"
             android:text="KodackKodackKodack"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:layout_marginLeft="10dp"
             android:textColor="?attr/colorOnPrimary"
             app:layout_constraintBottom_toTopOf="@+id/ItemPrice"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/CartImage" />
+            app:layout_constraintTop_toBottomOf="@+id/CartImageLayout" />
 
         <TextView
             android:id="@+id/ItemPrice"

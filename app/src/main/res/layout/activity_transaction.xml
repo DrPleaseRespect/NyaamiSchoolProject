@@ -7,7 +7,7 @@
     tools:context=".Activities.TransactionActivity">
 
     <LinearLayout
-        android:id="@+id/CartButtonLinearLayout"
+        android:id="@+id/BackButtonLinearLayout"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:padding="4dp"
@@ -49,43 +49,75 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
         android:layout_marginTop="52dp"
-        android:text="Shipping Information:"
+        android:text="@string/shipping_information"
         android:textSize="30sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider2"></TextView>
+        app:layout_constraintTop_toBottomOf="@+id/divider2"/>
+
+    <TextView
+        android:id="@+id/ShippingNameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="4dp"
+        android:text="@string/name_placeholder"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ShippingInfoLabel"/>
 
     <TextView
         android:id="@+id/ShippingName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/ShippingNameLabel"
+        app:layout_constraintStart_toEndOf="@+id/ShippingNameLabel"
+        app:layout_constraintTop_toTopOf="@+id/ShippingNameLabel" />
+
+    <TextView
+        android:id="@+id/ShippingNumberLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
         android:layout_marginTop="4dp"
-        android:text="Name: Placeholder"
+        android:text="@string/number_placeholder"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ShippingInfoLabel"></TextView>
+        app:layout_constraintTop_toBottomOf="@+id/ShippingNameLabel"/>
 
     <TextView
         android:id="@+id/ShippingNumber"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/ShippingNumberLabel"
+        app:layout_constraintStart_toEndOf="@+id/ShippingNumberLabel"
+        app:layout_constraintTop_toTopOf="@+id/ShippingNumberLabel"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/ShippingAddressLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
         android:layout_marginTop="4dp"
-        android:text="Number: Placeholder"
+        android:text="@string/address_placeholder"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ShippingName"></TextView>
+        app:layout_constraintTop_toBottomOf="@+id/ShippingNumberLabel"/>
 
     <TextView
         android:id="@+id/ShippingAddress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="28dp"
-        android:layout_marginTop="4dp"
-        android:text="Address: Placeholder"
+        android:layout_marginStart="16dp"
         android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ShippingNumber"></TextView>
+        app:layout_constraintBottom_toBottomOf="@+id/ShippingAddressLabel"
+        app:layout_constraintStart_toEndOf="@+id/ShippingAddressLabel"
+        app:layout_constraintTop_toTopOf="@+id/ShippingAddressLabel"
+        app:layout_constraintVertical_bias="0.0" />
 
     <View
         android:id="@+id/divider3"
@@ -94,7 +126,7 @@
         android:layout_marginTop="16dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ShippingAddress" />
+        app:layout_constraintTop_toBottomOf="@+id/ShippingAddressLabel" />
 
     <TextView
         android:id="@+id/PaymentLabel"
@@ -152,9 +184,11 @@
         app:layout_constraintTop_toBottomOf="@+id/divider4" />
 
     <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/OrdersFragment"
+        android:name="com.drpleaserespect.nyaamii.Fragments.OrdersFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/materialButton"
+        app:layout_constraintBottom_toTopOf="@+id/CheckoutButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -162,7 +196,7 @@
 </androidx.fragment.app.FragmentContainerView>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/materialButton"
+        android:id="@+id/CheckoutButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"

@@ -117,10 +117,13 @@
         android:id="@+id/ItemName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="12dp"
+        android:paddingEnd="50dp"
+        android:paddingStart="20dp"
         android:textSize="30sp"
         app:layout_constraintBottom_toTopOf="@+id/ItemPrice"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Item Placeholder" />
 
@@ -128,22 +131,35 @@
         android:id="@+id/ItemPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginStart="4dp"
+        android:paddingEnd="50dp"
+        android:paddingStart="20dp"
+        android:layout_marginBottom="12dp"
         android:textSize="22sp"
-        app:layout_constraintBottom_toTopOf="@+id/ItemDescription"
+        app:layout_constraintBottom_toTopOf="@+id/ItemDescriptionScrollView"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Item Price Placeholder" />
 
-    <TextView
-        android:id="@+id/ItemDescription"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="268dp"
+    <ScrollView
+        android:id="@+id/ItemDescriptionScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.069"
         app:layout_constraintStart_toStartOf="parent"
-        tools:text="Item Description Placeholder" />
+        >
+
+        <TextView
+            android:id="@+id/ItemDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="156dp"
+            android:padding="10dp"
+
+            tools:text="Item Description Placeholder" />
+    </ScrollView>
+
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -157,6 +173,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/BuyNowButton"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="@string/buy" />

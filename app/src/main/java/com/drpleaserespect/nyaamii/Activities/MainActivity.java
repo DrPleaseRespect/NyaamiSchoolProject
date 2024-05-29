@@ -3,6 +3,8 @@ package com.drpleaserespect.nyaamii.Activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -11,6 +13,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -19,8 +22,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.drpleaserespect.nyaamii.DataObjects.Loader;
+import com.drpleaserespect.nyaamii.DataObjects.Loader.Listener;
 import com.drpleaserespect.nyaamii.R;
 import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.R.id;
+import com.drpleaserespect.nyaamii.R.layout;
+import com.drpleaserespect.nyaamii.R.string;
 import com.drpleaserespect.nyaamii.ViewModels.LoaderViewModel;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemViewModel;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemsCarouselViewModel;
@@ -29,8 +36,10 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Filter;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.FirebaseFirestoreSettings.Builder;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.MemoryCacheSettings;
 import com.google.firebase.firestore.PersistentCacheSettings;
@@ -43,7 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity implements OnSharedPreferenceChangeListener {
 
     private static final String TAG = "MainActivity";
     private static final String TEST_USER = "DrPleaseRespect";
@@ -63,23 +72,29 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         Query db_collection = db.collectionGroup("Items");
 
 
-        if (!SearchQuery.equals("")) {
-            db_collection = db_collection.whereGreaterThanOrEqualTo("searchName", SearchQuery)
-                    .whereLessThan("searchName", SearchQuery + "\uf8ff");
-        }
+        if (!SearchQuery.equals(""))
+            db_collection = db_collection.where(Filter.or(
+                    Filter.and(
+                            Filter.greaterThanOrEqualTo("searchName", SearchQuery),
+                            Filter.lessThan("searchName", SearchQuery + '\uf8ff')
+                    ),
+                    Filter.and(
+                            Filter.greaterThanOrEqualTo("Name", SearchQuery),
+                            Filter.lessThan("Name", SearchQuery + '\uf8ff')
+                    )
+
+                    ));
 
 
-        if (store_snapshot_listener != null) {
-            store_snapshot_listener.remove();
-        }
+        if (store_snapshot_listener != null) store_snapshot_listener.remove();
         store_snapshot_listener = db_collection.addSnapshotListener((queryDocumentSnapshots, e) -> {
             if (e != null) {
                 Log.w(TAG, "Listen failed.", e);
                 return;
             }
             List<StoreItem> storeItems = new ArrayList<>();
-            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                if (doc != null && doc.exists()) {
+            for (QueryDocumentSnapshot doc : queryDocumentSnapshots)
+                if ((doc != null) && doc.exists()) {
                     Map<String, Object> data = doc.getData();
                     Log.d(TAG, "Data Obtained From Firebase: " + data);
                     if (data != null) {
@@ -87,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         storeItems.add(item);
                     }
                 }
-            }
             viewModel.setStoreItems(storeItems);
         });
 
@@ -95,16 +109,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private void SetUserInfo(String ImageURL, String Username, String Email) {
         // Set the user's Image
-        ImageView imageView = findViewById(R.id.UserAvatar);
+        ImageView imageView = findViewById(id.UserAvatar);
         Glide.with(this).load(ImageURL).into(imageView);
-        SharedPreferences.Editor editor = sharedPref.edit();
+        Editor editor = sharedPref.edit();
         editor.putString("User", Username);
         editor.putString("Image", ImageURL);
         editor.putString("Email", Email);
         editor.apply();
 
         // Set the user's Username
-        TextView username_view = findViewById(R.id.UserName);
+        TextView username_view = findViewById(id.UserName);
         Log.d(TAG, String.format("SetUserInfo: {ImageURL: %s, Username: %s}", ImageURL, Username));
         username_view.setText(Username);
     }
@@ -113,35 +127,31 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         // Register Once
         queryRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    Map<String, Object> data = document.getData();
-                    Log.d(TAG, sharedPref.getString("User", "DrPleaseRespect"));
-                    Log.d(TAG, "Data Obtained From Firebase: " + data);
-                    if (data != null) {
-                        SetUserInfo((String) data.get("Image"), (String) data.get("Username"), (String) data.get("Email"));
-                        loader_obj.setLoaded("Profile");
-                    } else {
-                        Log.d(TAG, "Data is null");
-                        Log.d(TAG, "RESETTING OPTIONS");
-                        SharedPreferences.Editor editor = sharedPref.edit();
-                        editor.putString("User", TEST_USER);
-                        editor.apply();
-                    }
+            if (task.isSuccessful()) for (QueryDocumentSnapshot document : task.getResult()) {
+                Map<String, Object> data = document.getData();
+                Log.d(TAG, sharedPref.getString("User", "DrPleaseRespect"));
+                Log.d(TAG, "Data Obtained From Firebase: " + data);
+                if (data != null) {
+                    SetUserInfo((String) data.get("Image"), (String) data.get("Username"), (String) data.get("Email"));
+                    loader_obj.setLoaded("Profile");
+                } else {
+                    Log.d(TAG, "Data is null");
+                    Log.d(TAG, "RESETTING OPTIONS");
+                    Editor editor = sharedPref.edit();
+                    editor.putString("User", TEST_USER);
+                    editor.apply();
                 }
             }
         });
         // Listener for Future Changes
-        if (user_snapshot_listener != null) {
-            user_snapshot_listener.remove();
-        }
+        if (user_snapshot_listener != null) user_snapshot_listener.remove();
         user_snapshot_listener = queryRef.addSnapshotListener((query_snapshots, e) -> {
             if (e != null) {
                 Log.w(TAG, "Listen failed.", e);
                 return;
             }
-            for (QueryDocumentSnapshot doc : query_snapshots) {
-                if (doc != null && doc.exists()) {
+            for (QueryDocumentSnapshot doc : query_snapshots)
+                if ((doc != null) && doc.exists()) {
                     Map<String, Object> data = doc.getData();
                     Log.d(TAG, sharedPref.getString("User", "DrPleaseRespect"));
                     Log.d(TAG, "Data Obtained From Firebase: " + data);
@@ -151,19 +161,17 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     } else {
                         Log.d(TAG, "Data is null");
                         Log.d(TAG, "RESETTING OPTIONS");
-                        SharedPreferences.Editor editor = sharedPref.edit();
+                        Editor editor = sharedPref.edit();
                         editor.putString("User", TEST_USER);
                         editor.apply();
                     }
                 }
-
-            }
         });
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
-        if (key != null && key.equals("User")) {
+        if ((key != null) && key.equals("User")) {
             Log.d(TAG, "User Changed: " + sharedPreferences.getString("User", "DrPleaseRespect"));
             Query query = FirebaseFirestore.getInstance().collection("UserData").whereEqualTo("Username", sharedPreferences.getString("User", "DrPleaseRespect"));
             RegisterProfileListener(query);
@@ -173,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(layout.activity_main);
 
         // Initialize Loader
         loader_obj = new Loader(new String[] {"Profile", "Categories"} );
@@ -182,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         // Get the loader view model
         loaderViewModel = new ViewModelProvider(this).get(LoaderViewModel.class);
 
-        loader_obj.setListener(new Loader.Listener() {
+        loader_obj.setListener(new Listener() {
             @Override
             public void onLoaded(String object) {
 
@@ -194,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
         });
         // Get the shared preferences
-        sharedPref = getSharedPreferences(getString(R.string.ProfileState), MODE_PRIVATE);
+        sharedPref = getSharedPreferences(getString(string.ProfileState), MODE_PRIVATE);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
 
 
@@ -203,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         // Enable offline data persistence
         FirebaseFirestoreSettings settings =
-                new FirebaseFirestoreSettings.Builder(db.getFirestoreSettings())
+                new Builder(db.getFirestoreSettings())
                         // Use memory-only cache
                         .setLocalCacheSettings(MemoryCacheSettings.newBuilder().build())
                         // Use persistent disk cache (default)
@@ -218,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         //while (sharedPref == null) {
         //    Log.d(TAG, "SOMETHING HAS GONE ABSOLUTELY FUCKED!");
         //}
-        SharedPreferences.Editor editor = sharedPref.edit();
+        Editor editor = sharedPref.edit();
         editor.putString("User", sharedPref.getString("User", "DrPleaseRespect"));
         editor.apply();
 
@@ -239,13 +247,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 for (QueryDocumentSnapshot document : task.getResult()) {
                     Log.d("Tag", document.getData().toString());
                     MaterialButton materialbutton = new MaterialButton(this);
-                    materialbutton.setText((CharSequence) document.getId());
+                    materialbutton.setText(document.getId());
                     CategoryButtons.add(materialbutton);
                 }
-                LinearLayout buttonstuff = findViewById(R.id.CategoryLayout);
-                LinearLayout.LayoutParams layouts = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
+                LinearLayout buttonstuff = findViewById(id.CategoryLayout);
+                LayoutParams layouts = new LayoutParams(
+                        LayoutParams.WRAP_CONTENT,
+                        LayoutParams.WRAP_CONTENT
                 );
                 int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, getResources().getDisplayMetrics());
                 layouts.setMargins(margin, margin, 0, 0);
@@ -266,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         });
 
         // Profile Button
-        findViewById(R.id.Profile).setOnClickListener(v -> {
+        findViewById(id.Profile).setOnClickListener(v -> {
             // Open the Profile Activity
             Log.d(TAG, "Profile Button Clicked");
             // Start DebuggingPage Activity
@@ -282,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         CreateDataListener(store_viewModel, "");
 
         // Search Functionality
-        EditText SearchBar = findViewById(R.id.SearchBar);
+        EditText SearchBar = findViewById(id.SearchBar);
         SearchBar.setImeOptions(EditorInfo.IME_ACTION_DONE);
         SearchBar.setOnClickListener(v -> SearchBar.setCursorVisible(true));
         SearchBar.setImeActionLabel("Search", EditorInfo.IME_ACTION_DONE);
@@ -311,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     List<StoreItem> storeItems = new ArrayList<>();
                     for (Task<?> document : task1.getResult()) {
                         DocumentSnapshot document2 = (DocumentSnapshot) document.getResult();
-                        if (document2 != null && document2.exists()) {
+                        if ((document2 != null) && document2.exists()) {
                             Map<String, Object> data = document2.getData();
                             Log.d(TAG, "Data Obtained From Firebase: " + data);
                             if (data != null) {
@@ -320,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             }
                         }
                     }
-                    Log.d(TAG, "CarouselData : " + storeItems.toString());
+                    Log.d(TAG, "CarouselData : " + storeItems);
                     carousel_viewModel.setStoreItems(storeItems);
                 });
             }
