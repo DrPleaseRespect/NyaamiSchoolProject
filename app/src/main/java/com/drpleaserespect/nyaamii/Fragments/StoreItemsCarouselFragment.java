@@ -13,9 +13,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewbinding.ViewBinding;
 
+import com.bumptech.glide.Glide;
 import com.drpleaserespect.nyaamii.Activities.ProductDetailActivity;
 import com.drpleaserespect.nyaamii.R;
-import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemsCarouselViewModel;
@@ -41,7 +42,7 @@ public class StoreItemsCarouselFragment extends Fragment {
         viewModel.getStoreItems().observe(getViewLifecycleOwner(), storeItems -> {
             List<CarouselItem> items = new ArrayList<>();
             for (StoreItem item : storeItems) {
-                item.PreCacheImage(requireContext());
+                Glide.with(requireContext()).load(item.getImageUrl()).preload();
                 items.add(new CarouselItem(item.getImageUrl(), item.getName()));
             }
             Log.d(TAG, "Items: " + items);

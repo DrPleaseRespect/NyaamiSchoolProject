@@ -8,7 +8,6 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -23,26 +22,20 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.drpleaserespect.nyaamii.DataObjects.Loader;
 import com.drpleaserespect.nyaamii.DataObjects.Loader.Listener;
-import com.drpleaserespect.nyaamii.R;
-import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.Database.DAOs.StoreItemDao;
+import com.drpleaserespect.nyaamii.Database.DAOs.UserDao;
+import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.User;
+import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.R.string;
 import com.drpleaserespect.nyaamii.ViewModels.LoaderViewModel;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemViewModel;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemsCarouselViewModel;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.Filter;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.FirebaseFirestoreSettings.Builder;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.MemoryCacheSettings;
-import com.google.firebase.firestore.PersistentCacheSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -51,6 +44,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 
 public class MainActivity extends AppCompatActivity implements OnSharedPreferenceChangeListener {
 
@@ -58,55 +56,56 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
     private static final String TEST_USER = "DrPleaseRespect";
 
     private static ListenerRegistration user_snapshot_listener = null;
-    private static ListenerRegistration store_snapshot_listener = null;
-    private Loader loader_obj = null;
-
-    private LoaderViewModel loaderViewModel = null;
+    private static Disposable store_snapshot_listener = null;
+    private static Disposable carousel_listener = null;
     private final List<MaterialButton> CategoryButtons = new ArrayList<>();
+    private final CompositeDisposable mDisposable = new CompositeDisposable();
+    private Loader loader_obj = null;
+    private LoaderViewModel loaderViewModel = null;
     private SharedPreferences sharedPref = null;
 
-    private void CreateDataListener(StoreItemViewModel viewModel, String SearchQuery) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-
-        Query db_collection = db.collectionGroup("Items");
-
-
-        if (!SearchQuery.equals(""))
-            db_collection = db_collection.where(Filter.or(
-                    Filter.and(
-                            Filter.greaterThanOrEqualTo("searchName", SearchQuery),
-                            Filter.lessThan("searchName", SearchQuery + '\uf8ff')
-                    ),
-                    Filter.and(
-                            Filter.greaterThanOrEqualTo("Name", SearchQuery),
-                            Filter.lessThan("Name", SearchQuery + '\uf8ff')
-                    )
-
-                    ));
-
-
-        if (store_snapshot_listener != null) store_snapshot_listener.remove();
-        store_snapshot_listener = db_collection.addSnapshotListener((queryDocumentSnapshots, e) -> {
-            if (e != null) {
-                Log.w(TAG, "Listen failed.", e);
-                return;
-            }
-            List<StoreItem> storeItems = new ArrayList<>();
-            for (QueryDocumentSnapshot doc : queryDocumentSnapshots)
-                if ((doc != null) && doc.exists()) {
-                    Map<String, Object> data = doc.getData();
-                    Log.d(TAG, "Data Obtained From Firebase: " + data);
-                    if (data != null) {
-                        StoreItem item = new StoreItem(doc);
-                        storeItems.add(item);
-                    }
-                }
-            viewModel.setStoreItems(storeItems);
-        });
-
-    }
-
+    //    private void CreateDataListener(StoreItemViewModel viewModel, String SearchQuery) {
+//        FirebaseFirestore db = FirebaseFirestore.getInstance();
+//
+//
+//        Query db_collection = db.collectionGroup("Items");
+//
+//
+//        if (!SearchQuery.equals(""))
+//            db_collection = db_collection.where(Filter.or(
+//                    Filter.and(
+//                            Filter.greaterThanOrEqualTo("searchName", SearchQuery),
+//                            Filter.lessThan("searchName", SearchQuery + '\uf8ff')
+//                    ),
+//                    Filter.and(
+//                            Filter.greaterThanOrEqualTo("Name", SearchQuery),
+//                            Filter.lessThan("Name", SearchQuery + '\uf8ff')
+//                    )
+//
+//                    ));
+//
+//
+//        if (store_snapshot_listener != null) store_snapshot_listener.remove();
+//        store_snapshot_listener = db_collection.addSnapshotListener((queryDocumentSnapshots, e) -> {
+//            if (e != null) {
+//                Log.w(TAG, "Listen failed.", e);
+//                return;
+//            }
+//            List<StoreItem> storeItems = new ArrayList<>();
+//            for (QueryDocumentSnapshot doc : queryDocumentSnapshots)
+//                if ((doc != null) && doc.exists()) {
+//                    Map<String, Object> data = doc.getData();
+//                    Log.d(TAG, "Data Obtained From Firebase: " + data);
+//                    if (data != null) {
+//                        StoreItem item = new StoreItem(doc);
+//                        storeItems.add(item);
+//                    }
+//                }
+//            viewModel.setStoreItems(storeItems);
+//        });
+//
+//    }
+//
     private void SetUserInfo(String ImageURL, String Username, String Email) {
         // Set the user's Image
         ImageView imageView = findViewById(id.UserAvatar);
@@ -121,6 +120,8 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         TextView username_view = findViewById(id.UserName);
         Log.d(TAG, String.format("SetUserInfo: {ImageURL: %s, Username: %s}", ImageURL, Username));
         username_view.setText(Username);
+
+        loader_obj.setLoaded("Profile");
     }
 
     private void RegisterProfileListener(Query queryRef) {
@@ -174,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         if ((key != null) && key.equals("User")) {
             Log.d(TAG, "User Changed: " + sharedPreferences.getString("User", "DrPleaseRespect"));
             Query query = FirebaseFirestore.getInstance().collection("UserData").whereEqualTo("Username", sharedPreferences.getString("User", "DrPleaseRespect"));
-            RegisterProfileListener(query);
+            //RegisterProfileListener(query);
         }
     }
 
@@ -184,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         setContentView(layout.activity_main);
 
         // Initialize Loader
-        loader_obj = new Loader(new String[] {"Profile", "Categories"} );
+        loader_obj = new Loader(new String[]{"Profile", "Categories","Items"});
 
 
         // Get the loader view model
@@ -197,7 +198,9 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
             }
 
             @Override
-            public void onAllLoaded() {
+            public void onAllLoaded()
+            {
+                loaderViewModel.setStartDelay(2000);
                 loaderViewModel.setStatus(true);
             }
         });
@@ -205,20 +208,109 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         sharedPref = getSharedPreferences(getString(string.ProfileState), MODE_PRIVATE);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
 
+        //loaderViewModel.setStatus(true);
 
         // Setup Firebase Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        deleteDatabase("NyaamiDatabase");
+        NyaamiDatabase db = NyaamiDatabase.getDatabase(this);
+        StoreItemDao storeItemDao = db.storeItemDao();
 
-        // Enable offline data persistence
-        FirebaseFirestoreSettings settings =
-                new Builder(db.getFirestoreSettings())
-                        // Use memory-only cache
-                        .setLocalCacheSettings(MemoryCacheSettings.newBuilder().build())
-                        // Use persistent disk cache (default)
-                        .setLocalCacheSettings(PersistentCacheSettings.newBuilder()
-                                .build())
-                        .build();
-        db.setFirestoreSettings(settings);
+        // Create Store Items for Testing
+        //List<StoreItem> storeItems = new ArrayList<>();
+        //FirebaseFirestore db_firebase = FirebaseFirestore.getInstance();
+        // Get the store items from db_firebase and add it to the storeItems list
+        //db_firebase.collectionGroup("Items").get().addOnCompleteListener(task -> {
+        //    if (task.isSuccessful()) {
+        //        for (QueryDocumentSnapshot document : task.getResult()) {
+        //            Log.d("Tag", document.getData().toString());
+        //            StoreItem storeItem = new StoreItem(
+        //                    document.getString("Name"),
+        //                    document.getDouble("Price"),
+        //                    document.getString("ImageURL"),
+        //                    document.getString("Description"),
+        //                    ""
+        //            );
+        //            storeItems.add(storeItem);
+        //        }
+        //        mDisposable.add(
+        //                storeItemDao.insertStoreItems(storeItems.toArray(new StoreItem[0]))
+        //                        .subscribeOn(Schedulers.io())
+//
+//
+        //                        .subscribeOn(Schedulers.io())
+        //                        .subscribe(() -> {
+        //                            Log.d(TAG, "Store Items Inserted");
+        //                            //db.close();
+        //                        }, throwable -> {
+        //                            Log.e(TAG, "Error Inserting Store Items");
+        //                        }));
+        //    }
+        //});
+
+
+        UserDao userDao = db.userDao();
+        // Create a new user for testing
+        User user = User.create("DrPleaseRespect", "https://drpleaserespect.github.io/assets/img/Avatar.png", "juliannayr2007@gmail.com");
+        //mDisposable.add(userDao.insert(user)
+        //        .subscribeOn(Schedulers.io())
+        //        .observeOn(AndroidSchedulers.mainThread())
+        //        .subscribe(() -> {
+        //            Log.d(TAG, "User Inserted");
+        //            SetUserInfo(user.getProfileImage(), user.getUserName(), user.getEmail());
+        //        }, throwable -> {
+        //            Log.e(TAG, "Error Inserting User", throwable);
+        //        }));
+
+
+        // Get User Data from DB
+        mDisposable.add(userDao.getByUsername(sharedPref.getString("User", "DrPleaseRespect"))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(user1 -> {
+                    Log.d(TAG, "User Retrieved");
+                    SetUserInfo(user1.getProfileImage(), user1.getUserName(), user1.getEmail());
+                }, throwable -> {
+                    Log.e(TAG, "Error Getting User", throwable);
+                }));
+
+
+        // Category Data Setup
+        mDisposable.add(
+                storeItemDao.getAllCategories()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(Schedulers.computation())
+                        .subscribe(
+                                categories -> {
+                                    LinearLayout buttonstuff = findViewById(id.CategoryLayout);
+                                    LayoutParams layouts = new LayoutParams(
+                                            LayoutParams.WRAP_CONTENT,
+                                            LayoutParams.WRAP_CONTENT
+                                    );
+                                    int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, getResources().getDisplayMetrics());
+                                    layouts.setMargins(margin, margin, 0, 0);
+                                    for (String category : categories) {
+                                        MaterialButton materialbutton = new MaterialButton(this);
+                                        materialbutton.setText(category);
+                                        CategoryButtons.add(materialbutton);
+                                    }
+                                    for (MaterialButton button : CategoryButtons) {
+                                        button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+                                        button.setCornerRadius(20);
+                                        button.setOnClickListener(v -> {
+                                            Log.d(TAG, button.getText() + " Category Button Clicked");
+                                            // Start CategoryActivity Activity
+                                            Intent intent = new Intent(this, CategoryActivity.class);
+                                            intent.putExtra("Category", button.getText());
+                                            startActivity(intent);
+                                        });
+                                        buttonstuff.addView(button, layouts);
+                                    }
+                                    loader_obj.setLoaded("Categories");
+                                }, throwable -> {
+                                    Log.e(TAG, "Error Getting Categories", throwable);
+                                }
+                        )
+        );
 
 
         // Initialize Debug Preferences
@@ -231,47 +323,65 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         editor.apply();
 
 
+        // Initialize Main Store Fragment
+        StoreItemViewModel store_viewModel = new ViewModelProvider(this).get(StoreItemViewModel.class);
+
+        // Initialize Items
+
+        store_snapshot_listener = db.storeItemDao()
+                .watchAll()
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.computation())
+                .subscribe(
+                        storeItems_watching -> {
+                            store_viewModel.postStoreItems(storeItems_watching);
+                            Log.d(TAG, "Item Initialization Finished");
+                        }, throwable -> {
+                            Log.e(TAG, "Item Initialization Failed " + throwable);
+                        }
+                );
+
         // Get the user's data from the Firebase Firestore
 
-        Query ProfileQuery = FirebaseFirestore.getInstance()
-                .collection("UserData")
-                .whereEqualTo("Username",
-                        sharedPref.getString("User", "DrPleaseRespect"));
-
-        RegisterProfileListener(ProfileQuery);
+        //Query ProfileQuery = FirebaseFirestore.getInstance()
+        //        .collection("UserData")
+        //        .whereEqualTo("Username",
+        //                sharedPref.getString("User", "DrPleaseRespect"));
+//
+        //RegisterProfileListener(ProfileQuery);
 
 
         // Category Data Setup
-        db.collection("StoreData").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    Log.d("Tag", document.getData().toString());
-                    MaterialButton materialbutton = new MaterialButton(this);
-                    materialbutton.setText(document.getId());
-                    CategoryButtons.add(materialbutton);
-                }
-                LinearLayout buttonstuff = findViewById(id.CategoryLayout);
-                LayoutParams layouts = new LayoutParams(
-                        LayoutParams.WRAP_CONTENT,
-                        LayoutParams.WRAP_CONTENT
-                );
-                int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, getResources().getDisplayMetrics());
-                layouts.setMargins(margin, margin, 0, 0);
-                for (MaterialButton button : CategoryButtons) {
-                    button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-                    button.setCornerRadius(20);
-                    button.setOnClickListener(v -> {
-                        Log.d(TAG, button.getText() + " Category Button Clicked");
-                        // Start CategoryActivity Activity
-                        Intent intent = new Intent(this, CategoryActivity.class);
-                        intent.putExtra("Category", button.getText());
-                        startActivity(intent);
-                    });
-                    buttonstuff.addView(button, layouts);
-                }
-                loader_obj.setLoaded("Categories");
-            }
-        });
+        //db.collection("StoreData").get().addOnCompleteListener(task -> {
+        //    if (task.isSuccessful()) {
+        //        for (QueryDocumentSnapshot document : task.getResult()) {
+        //            Log.d("Tag", document.getData().toString());
+        //            MaterialButton materialbutton = new MaterialButton(this);
+        //            materialbutton.setText(document.getId());
+        //            CategoryButtons.add(materialbutton);
+        //        }
+        //        LinearLayout buttonstuff = findViewById(id.CategoryLayout);
+        //        LayoutParams layouts = new LayoutParams(
+        //                LayoutParams.WRAP_CONTENT,
+        //                LayoutParams.WRAP_CONTENT
+        //        );
+        //        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, getResources().getDisplayMetrics());
+        //        layouts.setMargins(margin, margin, 0, 0);
+        //        for (MaterialButton button : CategoryButtons) {
+        //            button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+        //            button.setCornerRadius(20);
+        //            button.setOnClickListener(v -> {
+        //                Log.d(TAG, button.getText() + " Category Button Clicked");
+        //                // Start CategoryActivity Activity
+        //                Intent intent = new Intent(this, CategoryActivity.class);
+        //                intent.putExtra("Category", button.getText());
+        //                startActivity(intent);
+        //            });
+        //            buttonstuff.addView(button, layouts);
+        //        }
+        //        loader_obj.setLoaded("Categories");
+        //    }
+        //});
 
         // Profile Button
         findViewById(id.Profile).setOnClickListener(v -> {
@@ -282,12 +392,9 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
             startActivity(intent);
         });
 
-        // Initialize Main Store Fragment
-        StoreItemViewModel store_viewModel = new ViewModelProvider(this).get(StoreItemViewModel.class);
-
 
         // Get the store items from DB and set it to the view model
-        CreateDataListener(store_viewModel, "");
+        //CreateDataListener(store_viewModel, "");
 
         // Search Functionality
         EditText SearchBar = findViewById(id.SearchBar);
@@ -297,43 +404,94 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         SearchBar.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 v.setCursorVisible(false);
-                CreateDataListener(store_viewModel, v.getText().toString().toLowerCase());
+                if (store_snapshot_listener != null) store_snapshot_listener.dispose();
+                if (!v.getText().toString().equals("")) {
+                    store_snapshot_listener = db.storeItemDao()
+                            .watchSearch(v.getText().toString() + "*")
+                            .subscribeOn(Schedulers.io())
+                            .subscribe(
+                                    storeItems_watching -> {
+                                        store_viewModel.postStoreItems(storeItems_watching);
+                                        Log.d(TAG, "Item Initialization Finished");
+                                    }, throwable -> {
+                                        Log.e(TAG, "Item Initialization Failed " + throwable);
+                                    }
+                            );
+                } else {
+                    store_snapshot_listener = db.storeItemDao()
+                            .watchAll()
+                            .subscribeOn(Schedulers.io())
+                            .subscribe(
+                                    storeItems_watching -> {
+                                        db.close();
+                                        store_viewModel.postStoreItems(storeItems_watching);
+                                        Log.d(TAG, "Item Initialization Finished");
+                                    }, throwable -> {
+                                        Log.e(TAG, "Item Initialization Failed " + throwable);
+                                    }
+                            );
+                }
+
+                //CreateDataListener(store_viewModel, v.getText().toString().toLowerCase());
             }
 
             return false;
         });
 
+
+        carousel_listener = db.storeItemDao()
+                .watchFeaturedItems()
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        storeItems_watching -> {
+                            StoreItemsCarouselViewModel carousel_viewModel = new ViewModelProvider(this)
+                                    .get(StoreItemsCarouselViewModel.class);
+                            carousel_viewModel.postStoreItems(storeItems_watching);
+                            Log.d(TAG, "Carousel Data Set");
+                            loader_obj.setLoaded("Items");
+
+                        }, throwable -> {
+                            Log.e(TAG, "Carousel Data Failed " + throwable);
+                        }
+                );
+
         // Carousel Data
         // Get the store items from DB and set it to the view model
         StoreItemsCarouselViewModel carousel_viewModel = new ViewModelProvider(this)
                 .get(StoreItemsCarouselViewModel.class);
-        db.collection("FeaturedData").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    DocumentReference data = (DocumentReference) document.getData().get("Document");
-                    Log.d(TAG, data.toString());
-                    tasks.add(data.get());
-                }
-                Tasks.whenAllComplete(tasks).addOnCompleteListener(task1 -> {
-                    List<StoreItem> storeItems = new ArrayList<>();
-                    for (Task<?> document : task1.getResult()) {
-                        DocumentSnapshot document2 = (DocumentSnapshot) document.getResult();
-                        if ((document2 != null) && document2.exists()) {
-                            Map<String, Object> data = document2.getData();
-                            Log.d(TAG, "Data Obtained From Firebase: " + data);
-                            if (data != null) {
-                                StoreItem item = new StoreItem(document2);
-                                storeItems.add(item);
-                            }
-                        }
-                    }
-                    Log.d(TAG, "CarouselData : " + storeItems);
-                    carousel_viewModel.setStoreItems(storeItems);
-                });
-            }
-        });
+        //db.collection("FeaturedData").get().addOnCompleteListener(task -> {
+        //    if (task.isSuccessful()) {
+        //        List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+        //        for (QueryDocumentSnapshot document : task.getResult()) {
+        //            DocumentReference data = (DocumentReference) document.getData().get("Document");
+        //            Log.d(TAG, data.toString());
+        //            tasks.add(data.get());
+        //        }
+        //        Tasks.whenAllComplete(tasks).addOnCompleteListener(task1 -> {
+        //            List<StoreItem> storeItems = new ArrayList<>();
+        //            for (Task<?> document : task1.getResult()) {
+        //                DocumentSnapshot document2 = (DocumentSnapshot) document.getResult();
+        //                if ((document2 != null) && document2.exists()) {
+        //                    Map<String, Object> data = document2.getData();
+        //                    Log.d(TAG, "Data Obtained From Firebase: " + data);
+        //                    if (data != null) {
+        //                        StoreItem item = new StoreItem(document2);
+        //                        storeItems.add(item);
+        //                    }
+        //                }
+        //            }
+        //            Log.d(TAG, "CarouselData : " + storeItems);
+        //            carousel_viewModel.setStoreItems(storeItems);
+        //        });
+        //    }
+        //});
 
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mDisposable.dispose();
     }
 }

@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
 import com.drpleaserespect.nyaamii.R;
 import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
 import com.drpleaserespect.nyaamii.R.id;
@@ -30,10 +31,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class CategoryActivity extends AppCompatActivity implements OnSharedPreferenceChangeListener {
 
     private static final String TAG = "CategoryActivity";
-    private ListenerRegistration DataListener;
+    private Disposable store_listener = null;
 
     private SharedPreferences sharedPref = null;
 
@@ -52,48 +56,6 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
         SetUserAvatar(sharedPreferences.getString("Image", "https://picsum.photos/200"));
     }
 
-    private void CreateDataListener(String Category, StoreItemViewModel viewModel, String SearchQuery) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        Query db_collection;
-        if (Category.equals("")) {
-            Log.d(TAG, "Category is empty");
-            db_collection = db.collectionGroup("Items");
-        } else {
-            Log.d(TAG, "Category is not empty");
-            db_collection = db.collection("StoreData")
-                    .document(Category)
-                    .collection("Items");
-        }
-
-        if (!SearchQuery.equals("")) {
-            db_collection = db_collection.whereGreaterThanOrEqualTo("searchName", SearchQuery)
-                    .whereLessThan("searchName", SearchQuery + '\uf8ff');
-        }
-
-
-        if (DataListener != null) {
-            DataListener.remove();
-        }
-        DataListener = db_collection.addSnapshotListener((queryDocumentSnapshots, e) -> {
-            if (e != null) {
-                Log.w(TAG, "Listen failed.", e);
-                return;
-            }
-            List<StoreItem> storeItems = new ArrayList<>();
-            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                if (doc != null && doc.exists()) {
-                    Map<String, Object> data = doc.getData();
-                    Log.d(TAG, "Data Obtained From Firebase: " + data);
-                    if (data != null) {
-                        StoreItem item = new StoreItem(doc);
-                        storeItems.add(item);
-                    }
-                }
-            }
-            viewModel.setStoreItems(storeItems);
-        });
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,7 +91,28 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
 
 
         // Get the store items from DB and set it to the view model
-        CreateDataListener(category, viewModel, searchQuery);
+        NyaamiDatabase db = NyaamiDatabase.getDatabase(this);
+        if (category.equals("")) {
+            store_listener = db.storeItemDao()
+                    .watchSearch(searchQuery + "*")
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(storeItems -> {
+                        viewModel.postStoreItems(storeItems);
+                    }, throwable -> {
+                        Log.e(TAG, "Error: ", throwable);
+                    });
+        } else {
+            store_listener = db.storeItemDao()
+                    .watchAllinCategory(category)
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(storeItems -> {
+                        viewModel.postStoreItems(storeItems);
+                    }, throwable -> {
+                        Log.e(TAG, "Error: ", throwable);
+                    });
+        }
+
+        //CreateDataListener(category, viewModel, searchQuery);
 
         // Search Functionality
         EditText SearchBar = findViewById(id.SearchBar);
@@ -147,7 +130,28 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
             Log.d(TAG, "Event: " + event);
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 v.setCursorVisible(false);
-                CreateDataListener(finalCategory, viewModel, v.getText().toString().toLowerCase());
+                if (store_listener != null) {
+                    store_listener.dispose();
+                }
+                if (v.getText().toString().equals("")) {
+                    store_listener = db.storeItemDao()
+                            .watchAllinCategory(finalCategory)
+                            .subscribeOn(Schedulers.io())
+                            .subscribe(storeItems -> {
+                                viewModel.postStoreItems(storeItems);
+                            }, throwable -> {
+                                Log.e(TAG, "Error: ", throwable);
+                            });
+                } else {
+                    store_listener = db.storeItemDao()
+                            .watchSearchInCategory(finalCategory, v.getText().toString())
+                            .subscribeOn(Schedulers.io())
+                            .subscribe(storeItems -> {
+                                viewModel.postStoreItems(storeItems);
+                            }, throwable -> {
+                                Log.e(TAG, "Error: ", throwable);
+                            });
+                }
             }
 
             return false;

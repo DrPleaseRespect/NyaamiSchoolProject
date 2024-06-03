@@ -75,6 +75,11 @@ public class LoadingFragment extends Fragment {
             if (loaded) alpha_animator.start();
         });
 
+        viewModel.getStartDelay().observe(getViewLifecycleOwner(), startDelay -> {
+            Log.d(TAG, "onViewCreated: START DELAY: " + startDelay);
+            alpha_animator.setStartDelay(startDelay);
+        });
+
 
     }
 }

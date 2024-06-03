@@ -3,7 +3,7 @@ package com.drpleaserespect.nyaamii.ViewModels;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 
 import java.util.List;
 
@@ -17,6 +17,10 @@ public class StoreItemViewModel extends ViewModel {
 
     public void setStoreItems(List<StoreItem> items) {
         storeItems.setValue(items);
+    }
+
+    public void postStoreItems(List<StoreItem> items) {
+        storeItems.postValue(items);
     }
 
 }

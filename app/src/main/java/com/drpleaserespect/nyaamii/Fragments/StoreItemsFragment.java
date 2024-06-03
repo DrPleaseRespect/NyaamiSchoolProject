@@ -29,7 +29,7 @@ import com.bumptech.glide.request.target.Target;
 import com.drpleaserespect.nyaamii.Activities.ProductDetailActivity;
 import com.drpleaserespect.nyaamii.Fragments.StoreItemsFragment.StoreItemsAdapter.ViewHolder;
 import com.drpleaserespect.nyaamii.R;
-import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemViewModel;

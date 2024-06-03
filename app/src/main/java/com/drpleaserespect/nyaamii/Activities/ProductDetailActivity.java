@@ -23,7 +23,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
-import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 import com.drpleaserespect.nyaamii.R;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
@@ -95,7 +95,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             // Grab Firebase Firestore Instance
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             // Grab the User's Document
-            AddToCart(item, user, db);
+            //AddToCart(item, user, db);
         });
 
         // Buy Now Button
@@ -106,7 +106,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             // Grab Firebase Firestore Instance
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             // Grab the User's Document
-            AddToCart(item, user, db, true);
+            //AddToCart(item, user, db, true);
         });
 
 
@@ -130,42 +130,43 @@ public class ProductDetailActivity extends AppCompatActivity {
             return false;
         });
     }
-    private void AddToCart(StoreItem item, String user, FirebaseFirestore db) {
-        AddToCart(item, user, db, false);
-    }
-    private void AddToCart(StoreItem item, String user, FirebaseFirestore db, boolean BuyNow) {
-        db.collection("UserData").whereEqualTo("Username", user).limit(1).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                String docid = task.getResult().getDocuments().get(0).getId();
-                // Get Item Reference
-                db.collectionGroup("Items").whereEqualTo(FieldPath.documentId(), item.getDocumentPath()).get().addOnCompleteListener(task1 -> {
-                    if (task1.isSuccessful()) {
-                        DocumentReference itemRef = task1.getResult().getDocuments().get(0).getReference();
-                        // Check if Item is already in Cart
-                        db.collection("UserData").document(docid).collection("Cart").whereEqualTo("Item", itemRef).get().addOnCompleteListener(task2 -> {
-                            if (task2.isSuccessful()) if (task2.getResult().size() > 0) {
-                                // Item is already in Cart
-                                DocumentSnapshot doc = task2.getResult().getDocuments().get(0);
-                                int quantity = doc.getLong("Quantity").intValue();
-                                db.collection("UserData").document(docid).collection("Cart").document(item.getId()).update("Quantity", quantity + 1);
-                                Toast.makeText(this, getString(string.AlreadyInCartText), Toast.LENGTH_SHORT).show();
-                            } else {
-                                // Add Item to Cart
-                                Map<String, Object> cartItem = new HashMap<>();
-                                cartItem.put("Item", itemRef);
-                                cartItem.put("Quantity", 1);
-                                db.collection("UserData").document(docid).collection("Cart").document(item.getId()).set(cartItem);
-                                Toast.makeText(this, getString(string.AddedToCartText), Toast.LENGTH_SHORT).show();
-                            }
-                            if (BuyNow) {
-                                Intent intent = new Intent(this, TransactionActivity.class);
-                                startActivity(intent);
-                            }
-                        });
-                    }
-                });
-            }
-        });
-    }
+    //private void AddToCart(StoreItem item, String user, FirebaseFirestore db) {
+    //    AddToCart(item, user, db, false);
+    //}
+
+    //private void AddToCart(StoreItem item, String user, FirebaseFirestore db, boolean BuyNow) {
+    //    db.collection("UserData").whereEqualTo("Username", user).limit(1).get().addOnCompleteListener(task -> {
+    //        if (task.isSuccessful()) {
+    //            String docid = task.getResult().getDocuments().get(0).getId();
+    //            // Get Item Reference
+    //            db.collectionGroup("Items").whereEqualTo(FieldPath.documentId(), item.getDocumentPath()).get().addOnCompleteListener(task1 -> {
+    //                if (task1.isSuccessful()) {
+    //                    DocumentReference itemRef = task1.getResult().getDocuments().get(0).getReference();
+    //                    // Check if Item is already in Cart
+    //                    db.collection("UserData").document(docid).collection("Cart").whereEqualTo("Item", itemRef).get().addOnCompleteListener(task2 -> {
+    //                        if (task2.isSuccessful()) if (task2.getResult().size() > 0) {
+    //                            // Item is already in Cart
+    //                            DocumentSnapshot doc = task2.getResult().getDocuments().get(0);
+    //                            int quantity = doc.getLong("Quantity").intValue();
+    //                            db.collection("UserData").document(docid).collection("Cart").document(item.getId()).update("Quantity", quantity + 1);
+    //                            Toast.makeText(this, getString(string.AlreadyInCartText), Toast.LENGTH_SHORT).show();
+    //                        } else {
+    //                            // Add Item to Cart
+    //                            Map<String, Object> cartItem = new HashMap<>();
+    //                            cartItem.put("Item", itemRef);
+    //                            cartItem.put("Quantity", 1);
+    //                            db.collection("UserData").document(docid).collection("Cart").document(item.getId()).set(cartItem);
+    //                            Toast.makeText(this, getString(string.AddedToCartText), Toast.LENGTH_SHORT).show();
+    //                        }
+    //                        if (BuyNow) {
+    //                            Intent intent = new Intent(this, TransactionActivity.class);
+    //                            startActivity(intent);
+    //                        }
+    //                    });
+    //                }
+    //            });
+    //        }
+    //    });
+    //}
 
 }

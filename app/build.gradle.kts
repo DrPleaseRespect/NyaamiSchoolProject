@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
+    id("androidx.room")
+
 }
 
 android {
@@ -33,9 +35,18 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
+
 }
 
 dependencies {
+
+    compileOnly("com.google.auto.value:auto-value-annotations:1.11.0")
+    annotationProcessor("com.google.auto.value:auto-value:1.11.0")
+
+
     // Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     // Firebase Firestore
@@ -51,6 +62,20 @@ dependencies {
 
     // Shimmering
     implementation("com.github.skydoves:androidveil:1.1.3")
+
+    // Jetpack Room
+
+    implementation("androidx.room:room-runtime:2.6.1")
+    annotationProcessor("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-rxjava3:2.6.1")
+
+
+
+    // RXJava3
+    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
+
+
 
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.12.0")
