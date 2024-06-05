@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -12,8 +13,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.drpleaserespect.nyaamii.DataObjects.OrderObject;
-import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.OrderItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.DataClasses.OrderWithItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.DataClasses.UserWithHistory;
+import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
 import com.drpleaserespect.nyaamii.R;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
@@ -31,10 +35,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.reactivex.rxjava3.disposables.Disposable;
+
 public class ProfileActivity extends AppCompatActivity implements OnSharedPreferenceChangeListener {
 
     private SharedPreferences sharedPref = null;
-    private ListenerRegistration HistoryListener = null;
+    private Disposable HistoryListener = null;
+    private String TAG = "ProfileActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,42 +56,64 @@ public class ProfileActivity extends AppCompatActivity implements OnSharedPrefer
         ordersViewModel.setCartMode(false);
 
         // Obtain the Order History Data
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("UserData").whereEqualTo("Username", sharedPref.getString("User", "DrPleaseRespect")).limit(1).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                String docid = task.getResult().getDocuments().get(0).getId();
-                if (HistoryListener != null) HistoryListener.remove();
-                HistoryListener = db.collection("UserData").document(docid).collection("History").orderBy(FieldPath.documentId()).addSnapshotListener((value, error) -> {
-                    if (error != null) return;
-                    List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-                    List<OrderObject> orders = new ArrayList<>();
+        NyaamiDatabase db = NyaamiDatabase.getInstance(this);
+        HistoryListener = db.userDao()
+                .watchUserWithHistory("DrPleaseRespect")
+                .subscribe(historyObj -> {
+            List<OrderWithItem> orders = new ArrayList<>();
+            for (StoreItem order : historyObj.history) {
+                OrderWithItem orderObject = new OrderWithItem(
+                        new OrderItem(order.ItemID, 1, historyObj.user.getUserName()),
+                        order
 
-                    for (DocumentSnapshot doc : value.getDocuments()) {
-                        DocumentReference docref = doc.getDocumentReference("Item");
-                        if (docref == null) continue;
-                        Task<DocumentSnapshot> doctask = docref.get();
-
-                        doctask.addOnCompleteListener(task1 -> {
-                            if (task1.isSuccessful()) {
-                                DocumentSnapshot itemDoc = task1.getResult();
-                                StoreItem storeitem = new StoreItem(itemDoc);
-                                OrderObject order = new OrderObject(
-                                        storeitem,
-                                        1,
-                                        doc.getId());
-
-
-                                orders.add(order);
-                            }
-                        });
-                        tasks.add(doctask);
-                    }
-                    Tasks.whenAllComplete(tasks).addOnCompleteListener(task1 -> {
-                        ordersViewModel.setOrders(orders);
-                    });
-                });
+                );
+                orders.add(orderObject);
+                Log.d(TAG, "onCreate: " + orders.toString());
             }
-        });
+            ordersViewModel.postOrders(orders);
+        }, throwable -> {
+                    Log.e(TAG, "Order History Data: " + throwable.getMessage());
+                    throw throwable;
+                });
+
+
+        // Obtain the Order History Data
+        //FirebaseFirestore db = FirebaseFirestore.getInstance();
+        //db.collection("UserData").whereEqualTo("Username", sharedPref.getString("User", "DrPleaseRespect")).limit(1).get().addOnCompleteListener(task -> {
+        //    if (task.isSuccessful()) {
+        //        String docid = task.getResult().getDocuments().get(0).getId();
+        //        if (HistoryListener != null) HistoryListener.remove();
+        //        HistoryListener = db.collection("UserData").document(docid).collection("History").orderBy(FieldPath.documentId()).addSnapshotListener((value, error) -> {
+        //            if (error != null) return;
+        //            List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+        //            List<OrderObject> orders = new ArrayList<>();
+        //
+        //            for (DocumentSnapshot doc : value.getDocuments()) {
+        //                DocumentReference docref = doc.getDocumentReference("Item");
+        //                if (docref == null) continue;
+        //                Task<DocumentSnapshot> doctask = docref.get();
+        //
+        //                doctask.addOnCompleteListener(task1 -> {
+        //                    if (task1.isSuccessful()) {
+        //                        DocumentSnapshot itemDoc = task1.getResult();
+        //                        StoreItem storeitem = new StoreItem(itemDoc);
+        //                        OrderObject order = new OrderObject(
+        //                                storeitem,
+        //                                1,
+        //                                doc.getId());
+        //
+        //
+        //                        orders.add(order);
+        //                    }
+        //                });
+        //                tasks.add(doctask);
+        //            }
+        //            Tasks.whenAllComplete(tasks).addOnCompleteListener(task1 -> {
+        //                ordersViewModel.setOrders(orders);
+        //            });
+        //        });
+        //    }
+        //});
 
 
         // For back button use finish()

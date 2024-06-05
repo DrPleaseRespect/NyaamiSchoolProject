@@ -3,12 +3,13 @@ package com.drpleaserespect.nyaamii.ViewModels;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.drpleaserespect.nyaamii.DataObjects.OrderObject;
+import com.drpleaserespect.nyaamii.Database.DataEntites.DataClasses.OrderWithItem;
+import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 
 import java.util.List;
 
 public class OrdersViewModel extends ViewModel {
-    private final MutableLiveData<List<OrderObject>> orders = new MutableLiveData<>();
+    private final MutableLiveData<List<OrderWithItem>> orders = new MutableLiveData<>();
     private final MutableLiveData<Boolean> CartMode = new MutableLiveData<>(true);
 
     public MutableLiveData<Boolean> getCartMode() {
@@ -19,11 +20,16 @@ public class OrdersViewModel extends ViewModel {
         CartMode.setValue(mode);
     }
 
-    public MutableLiveData<List<OrderObject>> getOrders() {
+    public MutableLiveData<List<OrderWithItem>> getOrders() {
         return orders;
     }
 
-    public void setOrders(List<OrderObject> orders) {
+    public void setOrders(List<OrderWithItem> orders) {
         this.orders.setValue(orders);
     }
+
+    public void postOrders(List<OrderWithItem> orders) {
+        this.orders.postValue(orders);
+    }
+
 }

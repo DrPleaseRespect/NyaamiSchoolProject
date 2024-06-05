@@ -24,7 +24,6 @@ import com.drpleaserespect.nyaamii.DataObjects.Loader;
 import com.drpleaserespect.nyaamii.DataObjects.Loader.Listener;
 import com.drpleaserespect.nyaamii.Database.DAOs.StoreItemDao;
 import com.drpleaserespect.nyaamii.Database.DAOs.UserDao;
-import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 import com.drpleaserespect.nyaamii.Database.DataEntites.User;
 import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
 import com.drpleaserespect.nyaamii.R.id;
@@ -34,15 +33,10 @@ import com.drpleaserespect.nyaamii.ViewModels.LoaderViewModel;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemViewModel;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemsCarouselViewModel;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -166,8 +160,8 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         //loaderViewModel.setStatus(true);
 
         // Setup Firebase Firestore
-        deleteDatabase("NyaamiDatabase");
-        NyaamiDatabase db = NyaamiDatabase.getDatabase(this);
+        //deleteDatabase("NyaamiDatabase");
+        NyaamiDatabase db = NyaamiDatabase.getInstance(this);
         StoreItemDao storeItemDao = db.storeItemDao();
 
         // Create Store Items for Testing

@@ -11,4 +11,9 @@ public class UserHistoryCrossRef {
     @NonNull
     @ColumnInfo(index = true)
     public String ItemID;
+
+    public UserHistoryCrossRef(@NonNull String userName, @NonNull String ItemID) {
+        this.userName = userName;
+        this.ItemID = ItemID;
+    }
 }

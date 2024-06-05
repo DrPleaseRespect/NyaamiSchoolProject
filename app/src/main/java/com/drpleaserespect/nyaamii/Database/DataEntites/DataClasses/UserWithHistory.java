@@ -4,7 +4,6 @@ import androidx.room.Embedded;
 import androidx.room.Junction;
 import androidx.room.Relation;
 
-import com.drpleaserespect.nyaamii.Database.DataEntites.CrossRefs.UserCartCrossRef;
 import com.drpleaserespect.nyaamii.Database.DataEntites.CrossRefs.UserHistoryCrossRef;
 import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 import com.drpleaserespect.nyaamii.Database.DataEntites.User;

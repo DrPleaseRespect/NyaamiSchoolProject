@@ -29,6 +29,7 @@ public class StoreItem implements Parcelable {
     public String Category;
 
     public boolean FeaturedItem = false;
+    private static String CurrencySuffix = "PHP";
 
 
     public StoreItem(String Name, double Price, String ImageUrl, String Description, String Category, boolean FeaturedItem) {
@@ -101,6 +102,9 @@ public class StoreItem implements Parcelable {
         return Objects.equals(ItemID, storeItem.ItemID);
     }
 
+    public static String getCurrencySuffix() {
+        return CurrencySuffix;
+    }
     public String getName() {
         return Name;
     }
@@ -109,7 +113,7 @@ public class StoreItem implements Parcelable {
         return Price;
     }
     public String getPriceString() {
-        return Price + " PHP";
+        return Price + " " + getCurrencySuffix();
     }
 
     public String getImageUrl() {

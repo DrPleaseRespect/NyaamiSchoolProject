@@ -6,9 +6,8 @@ import androidx.room.PrimaryKey;
 
 import java.util.UUID;
 
-@Entity()
+@Entity(primaryKeys = {"OrderID", "StoreItemID", "OrderOwner"})
 public class OrderItem {
-    @PrimaryKey
     @NonNull
     public String OrderID = UUID.randomUUID().toString();
 

@@ -14,17 +14,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.DiffUtil.ItemCallback;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.drpleaserespect.nyaamii.DataObjects.OrderObject;
+import com.drpleaserespect.nyaamii.Database.DAOs.UserDao;
+import com.drpleaserespect.nyaamii.Database.DataEntites.DataClasses.OrderWithItem;
+import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
 import com.drpleaserespect.nyaamii.Fragments.OrdersFragment.OrdersAdapter.OnClickListener;
 import com.drpleaserespect.nyaamii.Fragments.OrdersFragment.OrdersAdapter.ViewHolder;
-import com.drpleaserespect.nyaamii.R;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.ViewModels.LoaderViewModel;
@@ -33,12 +33,19 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.imageview.ShapeableImageView;
 
 import java.util.ArrayList;
-import java.util.List;
+
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class OrdersFragment extends Fragment {
     private static final String TAG = "OrdersFragment";
     boolean ListLoaded = false;
     private OrdersAdapter Adapter = null;
+
+    private NyaamiDatabase DB_instance = null;
+
+    private CompositeDisposable mDisposable = new CompositeDisposable();
     public OrdersFragment() {
         // Required empty public constructor
     }
@@ -55,6 +62,10 @@ public class OrdersFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         OrdersViewModel ordersViewModel = new ViewModelProvider(requireActivity()).get(OrdersViewModel.class);
         LoaderViewModel loaderViewModel = new ViewModelProvider(requireActivity()).get(LoaderViewModel.class);
+        if (mDisposable.isDisposed()) {
+            mDisposable = new CompositeDisposable();
+        }
+        DB_instance = NyaamiDatabase.getInstance(requireContext());
 
 
         RecyclerView rec = view.findViewById(id.OrdersRecyclerView);
@@ -86,45 +97,65 @@ public class OrdersFragment extends Fragment {
         InitAdapter(Adapter, ordersViewModel);
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mDisposable.dispose();
+    }
+
     private void InitAdapter(OrdersAdapter Adapter, OrdersViewModel viewModel) {
         Adapter.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClickClose(ViewHolder viewHolder, OrderObject orderObject) {
-                List<OrderObject> List = viewModel.getOrders().getValue();
-                try {
-                    List.remove(orderObject);
-                } catch (IndexOutOfBoundsException e) {
-                    Log.e(TAG, "onClickClose: ", e);
+            public void onClickClose(ViewHolder viewHolder, OrderWithItem orderObject) {
+                mDisposable.add(
+                        DB_instance.userDao().deleteOrder(orderObject.order).subscribeOn(Schedulers.io())
+                                .subscribe(() -> {}, throwable -> {
+                                    Log.e(TAG, "onClickClose: " + throwable.getMessage());
+                                })
+                );
+
+
+
+
+            }
+
+            @Override
+            public void onClickQuantityAdd(ViewHolder viewHolder, OrderWithItem orderObject) {
+
+
+                UserDao userDao = DB_instance.userDao();
+                orderObject.order.OrderQuantity += 1;
+                mDisposable.add(
+                        userDao.updateOrder(orderObject.order)
+                                .subscribeOn(Schedulers.io())
+                                .subscribe(() -> {}, throwable -> {
+                            Log.e(TAG, "onClickQuantityAdd: " + throwable.getMessage());
+                        }));
+
+            }
+
+            @Override
+            public void onClickQuantityRemove(ViewHolder viewHolder, OrderWithItem orderObject) {
+
+                UserDao userDao = DB_instance.userDao();
+                orderObject.order.OrderQuantity -= 1;
+                Completable completable_obj;
+                if (orderObject.order.OrderQuantity <= 0) {
+                    completable_obj = userDao.deleteOrder(orderObject.order);
+                } else {
+                    completable_obj = userDao.updateOrder(orderObject.order);
                 }
-                Log.d(TAG, "onClickClose: " + List);
-                viewModel.setOrders(List);
-            }
 
-            @Override
-            public void onClickQuantityAdd(ViewHolder viewHolder, OrderObject orderObject) {
-
-                List<OrderObject> List = viewModel.getOrders().getValue();
-                OrderObject new_order = new OrderObject(orderObject, orderObject.getQuantity() + 1);
-                List.set(viewHolder.getBindingAdapterPosition(), new_order);
-                Log.d(TAG, "onClickQuantityAdd: " + List);
-                viewModel.setOrders(List);
+                mDisposable.add(completable_obj
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(() -> {}, throwable -> {
+                    Log.e(TAG, "onClickQuantityRemove: " + throwable.getMessage());
+                }));
 
             }
 
             @Override
-            public void onClickQuantityRemove(ViewHolder viewHolder, OrderObject orderObject) {
-
-                List<OrderObject> list = viewModel.getOrders().getValue();
-                OrderObject Order = orderObject;
-                OrderObject new_order = new OrderObject(Order, Order.getQuantity() - 1);
-                if (new_order.getQuantity() <= 0) list.remove(orderObject);
-                else list.set(viewHolder.getBindingAdapterPosition(), new_order);
-                Log.d(TAG, "onClickQuantityRemove: " + list);
-                viewModel.setOrders(list);
-            }
-
-            @Override
-            public void onEditQuantity(ViewHolder viewHolder, OrderObject orderObject, String quantity) {
+            public void onEditQuantity(ViewHolder viewHolder, OrderWithItem orderObject, String quantity) {
                 // Turn quantity into an integer
                 int quantity_int;
                 try {
@@ -133,29 +164,34 @@ public class OrdersFragment extends Fragment {
                     Log.e(TAG, "onEditQuantity: ", e);
                     quantity_int = 0;
                 }
-
-                List<OrderObject> List = viewModel.getOrders().getValue();
-                OrderObject Order = orderObject;
-                OrderObject new_order = new OrderObject(Order, quantity_int);
-                if (new_order.getQuantity() <= 0) List.remove(orderObject);
-                else List.set(viewHolder.getBindingAdapterPosition(), new_order);
-                Log.d(TAG, "onEditQuantity: " + List);
-                viewModel.setOrders(List);
+                Completable completable_obj;
+                UserDao userDao = DB_instance.userDao();
+                if (quantity_int <= 0) {
+                    completable_obj = userDao.deleteOrder(orderObject.order);
+                } else {
+                    orderObject.order.OrderQuantity = quantity_int;
+                    completable_obj = userDao.updateOrder(orderObject.order);
+                }
+                mDisposable.add(completable_obj
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(() -> {}, throwable -> {
+                    Log.e(TAG, "onEditQuantity: " + throwable.getMessage());
+                }));
             }
         });
     }
 
-    public static class OrdersAdapter extends ListAdapter<OrderObject, ViewHolder> {
+    public static class OrdersAdapter extends ListAdapter<OrderWithItem, ViewHolder> {
 
-        public static final ItemCallback<OrderObject> DIFF_CALLBACK = new ItemCallback<OrderObject>() {
+        public static final ItemCallback<OrderWithItem> DIFF_CALLBACK = new ItemCallback<OrderWithItem>() {
             @Override
-            public boolean areItemsTheSame(@NonNull OrderObject oldItem, @NonNull OrderObject newItem) {
+            public boolean areItemsTheSame(@NonNull OrderWithItem oldItem, @NonNull OrderWithItem newItem) {
                 //Log.d(TAG, "areItemsTheSame: " + oldItem.getItem().equalsID(newItem.getItem()));
-                return oldItem.getItem().equalsID(newItem.getItem());
+                return oldItem.item.equalsID(newItem.item);
             }
 
             @Override
-            public boolean areContentsTheSame(@NonNull OrderObject oldItem, @NonNull OrderObject newItem) {
+            public boolean areContentsTheSame(@NonNull OrderWithItem oldItem, @NonNull OrderWithItem newItem) {
                 //Log.d(TAG, "areContentsTheSame: " + oldItem.equals(newItem));
                 return oldItem.equals(newItem);
             }
@@ -183,12 +219,12 @@ public class OrdersFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-            OrderObject orderObject = getItem(position);
-            viewHolder.getItemNameView().setText(orderObject.getItem().getName());
-            viewHolder.getItemPriceView().setText(orderObject.getItem().getPriceString());
-            viewHolder.getItemQuantityView().setText(String.valueOf(orderObject.getQuantity()));
+            OrderWithItem orderObject = getItem(position);
+            viewHolder.getItemNameView().setText(orderObject.item.getName());
+            viewHolder.getItemPriceView().setText(orderObject.item.getPriceString());
+            viewHolder.getItemQuantityView().setText(String.valueOf(orderObject.order.OrderQuantity));
             Glide.with(viewHolder.itemView)
-                    .load(orderObject.getItem().getImageUrl())
+                    .load(orderObject.item.getImageUrl())
                     .into(viewHolder.getItemImageView());
 
             if (!CartMode) {
@@ -223,13 +259,13 @@ public class OrdersFragment extends Fragment {
         }
 
         public interface OnClickListener {
-            void onClickClose(ViewHolder viewHolder, OrderObject orderObject);
+            void onClickClose(ViewHolder viewHolder, OrderWithItem orderObject);
 
-            void onClickQuantityAdd(ViewHolder viewHolder, OrderObject orderObject);
+            void onClickQuantityAdd(ViewHolder viewHolder, OrderWithItem orderObject);
 
-            void onClickQuantityRemove(ViewHolder viewHolder, OrderObject orderObject);
+            void onClickQuantityRemove(ViewHolder viewHolder, OrderWithItem orderObject);
 
-            void onEditQuantity(ViewHolder viewHolder, OrderObject orderObject, String quantity);
+            void onEditQuantity(ViewHolder viewHolder, OrderWithItem orderObject, String quantity);
         }
 
         public static class ViewHolder extends RecyclerView.ViewHolder {

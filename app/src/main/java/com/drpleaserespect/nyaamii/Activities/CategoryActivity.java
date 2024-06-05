@@ -16,20 +16,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
-import com.drpleaserespect.nyaamii.R;
-import com.drpleaserespect.nyaamii.DataObjects.StoreItem;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.R.string;
 import com.drpleaserespect.nyaamii.ViewModels.StoreItemViewModel;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -91,7 +81,7 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
 
 
         // Get the store items from DB and set it to the view model
-        NyaamiDatabase db = NyaamiDatabase.getDatabase(this);
+        NyaamiDatabase db = NyaamiDatabase.getInstance(this);
         if (category.equals("")) {
             store_listener = db.storeItemDao()
                     .watchSearch(searchQuery + "*")

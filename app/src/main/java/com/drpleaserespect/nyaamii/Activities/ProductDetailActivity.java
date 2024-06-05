@@ -89,33 +89,13 @@ public class ProductDetailActivity extends AppCompatActivity {
         // Add To Cart Button
         Button AddToCartButton = findViewById(id.AddToCartButton);
         AddToCartButton.setOnClickListener(v -> {
-            // Get User
-            String user = sharedPref.getString("User", "DrPleaseRespect");
-            // Grab NyaamiDatabase Instance
-            NyaamiDatabase db = NyaamiDatabase.getDatabase(this);
-            UserDao userDao = db.userDao();
-            // Get User Entity
-            // Add Item to Cart
-            mDisposable.add(userDao.getByUsername(user).subscribeOn(Schedulers.io()).subscribe(
-                    user_entity -> {
-                        mDisposable.add(userDao.addToCart(user_entity, item).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(() -> {
-                            Toast.makeText(this, getString(string.AddedToCartText), Toast.LENGTH_SHORT).show();
-                        }));
-                    }, throwable -> {
-                        Log.e(TAG, "Error: " + throwable.getMessage());
-                    }
-            ));
+            AddToCart(item, false);
         });
 
         // Buy Now Button
         Button BuyNowButton = findViewById(id.BuyNowButton);
         BuyNowButton.setOnClickListener(v -> {
-            // Get User
-            String user = sharedPref.getString("User", "DrPleaseRespect");
-            // Grab Firebase Firestore Instance
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            // Grab the User's Document
-            //AddToCart(item, user, db, true);
+            AddToCart(item, true);
         });
 
 
@@ -138,43 +118,35 @@ public class ProductDetailActivity extends AppCompatActivity {
             return false;
         });
     }
-    //private void AddToCart(StoreItem item, String user, FirebaseFirestore db) {
-    //    AddToCart(item, user, db, false);
-    //}
 
-    //private void AddToCart(StoreItem item, String user, FirebaseFirestore db, boolean BuyNow) {
-    //    db.collection("UserData").whereEqualTo("Username", user).limit(1).get().addOnCompleteListener(task -> {
-    //        if (task.isSuccessful()) {
-    //            String docid = task.getResult().getDocuments().get(0).getId();
-    //            // Get Item Reference
-    //            db.collectionGroup("Items").whereEqualTo(FieldPath.documentId(), item.getDocumentPath()).get().addOnCompleteListener(task1 -> {
-    //                if (task1.isSuccessful()) {
-    //                    DocumentReference itemRef = task1.getResult().getDocuments().get(0).getReference();
-    //                    // Check if Item is already in Cart
-    //                    db.collection("UserData").document(docid).collection("Cart").whereEqualTo("Item", itemRef).get().addOnCompleteListener(task2 -> {
-    //                        if (task2.isSuccessful()) if (task2.getResult().size() > 0) {
-    //                            // Item is already in Cart
-    //                            DocumentSnapshot doc = task2.getResult().getDocuments().get(0);
-    //                            int quantity = doc.getLong("Quantity").intValue();
-    //                            db.collection("UserData").document(docid).collection("Cart").document(item.getId()).update("Quantity", quantity + 1);
-    //                            Toast.makeText(this, getString(string.AlreadyInCartText), Toast.LENGTH_SHORT).show();
-    //                        } else {
-    //                            // Add Item to Cart
-    //                            Map<String, Object> cartItem = new HashMap<>();
-    //                            cartItem.put("Item", itemRef);
-    //                            cartItem.put("Quantity", 1);
-    //                            db.collection("UserData").document(docid).collection("Cart").document(item.getId()).set(cartItem);
-    //                            Toast.makeText(this, getString(string.AddedToCartText), Toast.LENGTH_SHORT).show();
-    //                        }
-    //                        if (BuyNow) {
-    //                            Intent intent = new Intent(this, TransactionActivity.class);
-    //                            startActivity(intent);
-    //                        }
-    //                    });
-    //                }
-    //            });
-    //        }
-    //    });
-    //}
+    private void AddToCart(StoreItem item, boolean BuyNow) {
+        // Get User
+        String user = sharedPref.getString("User", "DrPleaseRespect");
+        // Grab NyaamiDatabase Instance
+        NyaamiDatabase db = NyaamiDatabase.getInstance(this);
+        UserDao userDao = db.userDao();
+        // Get User Entity
+        // Add Item to Cart
+        mDisposable.add(userDao.getByUsername(user).subscribeOn(Schedulers.io()).subscribe(
+                user_entity -> {
+                    mDisposable.add(userDao.addToOrder(user_entity, item).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(() -> {
+                        if (BuyNow) {
+                            Intent intent = new Intent(this, CartActivity.class);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(this, getString(string.AddedToCartText), Toast.LENGTH_SHORT).show();
+                        }
+                    }));
+                }, throwable -> {
+                    Log.e(TAG, "Error: " + throwable.getMessage());
+                }
+        ));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mDisposable.dispose();
+    }
 
 }

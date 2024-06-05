@@ -21,11 +21,19 @@ public abstract class User {
     public abstract String getUserName();
 
 
+    @NonNull
     public abstract String getProfileImage();
 
+    @NonNull
     public abstract String getEmail();
 
     public static User create(String userName, String profileImage, String email) {
+        if (profileImage == null) {
+            profileImage = "";
+        }
+        if (email == null) {
+            email = "";
+        }
         return new AutoValue_User(userName,profileImage, email);
     }
 
