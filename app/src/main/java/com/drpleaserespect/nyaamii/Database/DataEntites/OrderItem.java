@@ -12,13 +12,15 @@ public class OrderItem {
     @NonNull
     public String OrderID = UUID.randomUUID().toString();
 
-    public String ItemID;
+    @NonNull
+    public String StoreItemID;
 
+    @NonNull
     public String OrderOwner;
     public int OrderQuantity;
 
-    public OrderItem(String ItemID, int OrderQuantity, String OrderOwner) {
-        this.ItemID = ItemID;
+    public OrderItem(String StoreItemID, int OrderQuantity, String OrderOwner) {
+        this.StoreItemID = StoreItemID;
         this.OrderQuantity = OrderQuantity;
         this.OrderOwner = OrderOwner;
     }
@@ -28,7 +30,7 @@ public class OrderItem {
     public String toString() {
         return "OrderItem{" +
                 "OrderID='" + OrderID + '\'' +
-                ", ItemID='" + ItemID + '\'' +
+                ", ItemID='" + StoreItemID + '\'' +
                 ", OrderQuantity=" + OrderQuantity +
                 '}';
     }

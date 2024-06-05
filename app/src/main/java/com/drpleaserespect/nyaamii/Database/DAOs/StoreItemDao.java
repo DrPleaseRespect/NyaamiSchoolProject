@@ -28,7 +28,7 @@ public interface StoreItemDao {
     @Query("SELECT * FROM StoreItems")
     Single<List<StoreItem>> getAll();
 
-    @Query("SELECT * FROM StoreItems WHERE featuredItem = 1")
+    @Query("SELECT * FROM StoreItems WHERE featuredItem != 0")
     Flowable<List<StoreItem>> watchFeaturedItems();
     @Query("SELECT * FROM StoreItems")
     Flowable<List<StoreItem>> watchAll();

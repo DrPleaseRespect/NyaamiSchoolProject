@@ -14,11 +14,12 @@ import java.util.List;
 public class UserWithCart {
     @Embedded public User user;
     @Relation(
+            entity = OrderItem.class,
             parentColumn = "userName",
             entityColumn = "OrderID",
             associateBy = @Junction(UserCartCrossRef.class)
     )
-    public List<OrderItem> cart;
+    public List<OrderWithItem> cart;
 
 
     @Override

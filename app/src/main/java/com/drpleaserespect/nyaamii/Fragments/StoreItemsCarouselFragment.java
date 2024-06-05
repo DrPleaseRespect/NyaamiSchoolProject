@@ -43,8 +43,11 @@ public class StoreItemsCarouselFragment extends Fragment {
             List<CarouselItem> items = new ArrayList<>();
             for (StoreItem item : storeItems) {
                 Glide.with(requireContext()).load(item.getImageUrl()).preload();
-                items.add(new CarouselItem(item.getImageUrl(), item.getName()));
+                if (item.FeaturedItem) {
+                    items.add(new CarouselItem(item.getImageUrl(), item.getName()));
+                }
             }
+            Log.d(TAG, "RAW Items: " + storeItems);
             Log.d(TAG, "Items: " + items);
             carousel.setData(items);
         });

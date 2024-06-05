@@ -124,57 +124,12 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         loader_obj.setLoaded("Profile");
     }
 
-    private void RegisterProfileListener(Query queryRef) {
-
-        // Register Once
-        queryRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) for (QueryDocumentSnapshot document : task.getResult()) {
-                Map<String, Object> data = document.getData();
-                Log.d(TAG, sharedPref.getString("User", "DrPleaseRespect"));
-                Log.d(TAG, "Data Obtained From Firebase: " + data);
-                if (data != null) {
-                    SetUserInfo((String) data.get("Image"), (String) data.get("Username"), (String) data.get("Email"));
-                    loader_obj.setLoaded("Profile");
-                } else {
-                    Log.d(TAG, "Data is null");
-                    Log.d(TAG, "RESETTING OPTIONS");
-                    Editor editor = sharedPref.edit();
-                    editor.putString("User", TEST_USER);
-                    editor.apply();
-                }
-            }
-        });
-        // Listener for Future Changes
-        if (user_snapshot_listener != null) user_snapshot_listener.remove();
-        user_snapshot_listener = queryRef.addSnapshotListener((query_snapshots, e) -> {
-            if (e != null) {
-                Log.w(TAG, "Listen failed.", e);
-                return;
-            }
-            for (QueryDocumentSnapshot doc : query_snapshots)
-                if ((doc != null) && doc.exists()) {
-                    Map<String, Object> data = doc.getData();
-                    Log.d(TAG, sharedPref.getString("User", "DrPleaseRespect"));
-                    Log.d(TAG, "Data Obtained From Firebase: " + data);
-                    if (data != null) {
-                        SetUserInfo((String) data.get("Image"), (String) data.get("Username"), (String) data.get("Email"));
-                        loader_obj.setLoaded("Profile");
-                    } else {
-                        Log.d(TAG, "Data is null");
-                        Log.d(TAG, "RESETTING OPTIONS");
-                        Editor editor = sharedPref.edit();
-                        editor.putString("User", TEST_USER);
-                        editor.apply();
-                    }
-                }
-        });
-    }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
         if ((key != null) && key.equals("User")) {
             Log.d(TAG, "User Changed: " + sharedPreferences.getString("User", "DrPleaseRespect"));
-            Query query = FirebaseFirestore.getInstance().collection("UserData").whereEqualTo("Username", sharedPreferences.getString("User", "DrPleaseRespect"));
+            //Query query = FirebaseFirestore.getInstance().collection("UserData").whereEqualTo("Username", sharedPreferences.getString("User", "DrPleaseRespect"));
             //RegisterProfileListener(query);
         }
     }
@@ -341,47 +296,6 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
                         }
                 );
 
-        // Get the user's data from the Firebase Firestore
-
-        //Query ProfileQuery = FirebaseFirestore.getInstance()
-        //        .collection("UserData")
-        //        .whereEqualTo("Username",
-        //                sharedPref.getString("User", "DrPleaseRespect"));
-//
-        //RegisterProfileListener(ProfileQuery);
-
-
-        // Category Data Setup
-        //db.collection("StoreData").get().addOnCompleteListener(task -> {
-        //    if (task.isSuccessful()) {
-        //        for (QueryDocumentSnapshot document : task.getResult()) {
-        //            Log.d("Tag", document.getData().toString());
-        //            MaterialButton materialbutton = new MaterialButton(this);
-        //            materialbutton.setText(document.getId());
-        //            CategoryButtons.add(materialbutton);
-        //        }
-        //        LinearLayout buttonstuff = findViewById(id.CategoryLayout);
-        //        LayoutParams layouts = new LayoutParams(
-        //                LayoutParams.WRAP_CONTENT,
-        //                LayoutParams.WRAP_CONTENT
-        //        );
-        //        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, getResources().getDisplayMetrics());
-        //        layouts.setMargins(margin, margin, 0, 0);
-        //        for (MaterialButton button : CategoryButtons) {
-        //            button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-        //            button.setCornerRadius(20);
-        //            button.setOnClickListener(v -> {
-        //                Log.d(TAG, button.getText() + " Category Button Clicked");
-        //                // Start CategoryActivity Activity
-        //                Intent intent = new Intent(this, CategoryActivity.class);
-        //                intent.putExtra("Category", button.getText());
-        //                startActivity(intent);
-        //            });
-        //            buttonstuff.addView(button, layouts);
-        //        }
-        //        loader_obj.setLoaded("Categories");
-        //    }
-        //});
 
         // Profile Button
         findViewById(id.Profile).setOnClickListener(v -> {
@@ -392,9 +306,6 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
             startActivity(intent);
         });
 
-
-        // Get the store items from DB and set it to the view model
-        //CreateDataListener(store_viewModel, "");
 
         // Search Functionality
         EditText SearchBar = findViewById(id.SearchBar);
@@ -438,14 +349,16 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
             return false;
         });
 
-
+        // Carousel Data
         carousel_listener = db.storeItemDao()
                 .watchFeaturedItems()
                 .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         storeItems_watching -> {
                             StoreItemsCarouselViewModel carousel_viewModel = new ViewModelProvider(this)
                                     .get(StoreItemsCarouselViewModel.class);
+                            Log.d(TAG, "Carousel Data Set: " + storeItems_watching);
                             carousel_viewModel.postStoreItems(storeItems_watching);
                             Log.d(TAG, "Carousel Data Set");
                             loader_obj.setLoaded("Items");
@@ -455,36 +368,6 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
                         }
                 );
 
-        // Carousel Data
-        // Get the store items from DB and set it to the view model
-        StoreItemsCarouselViewModel carousel_viewModel = new ViewModelProvider(this)
-                .get(StoreItemsCarouselViewModel.class);
-        //db.collection("FeaturedData").get().addOnCompleteListener(task -> {
-        //    if (task.isSuccessful()) {
-        //        List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-        //        for (QueryDocumentSnapshot document : task.getResult()) {
-        //            DocumentReference data = (DocumentReference) document.getData().get("Document");
-        //            Log.d(TAG, data.toString());
-        //            tasks.add(data.get());
-        //        }
-        //        Tasks.whenAllComplete(tasks).addOnCompleteListener(task1 -> {
-        //            List<StoreItem> storeItems = new ArrayList<>();
-        //            for (Task<?> document : task1.getResult()) {
-        //                DocumentSnapshot document2 = (DocumentSnapshot) document.getResult();
-        //                if ((document2 != null) && document2.exists()) {
-        //                    Map<String, Object> data = document2.getData();
-        //                    Log.d(TAG, "Data Obtained From Firebase: " + data);
-        //                    if (data != null) {
-        //                        StoreItem item = new StoreItem(document2);
-        //                        storeItems.add(item);
-        //                    }
-        //                }
-        //            }
-        //            Log.d(TAG, "CarouselData : " + storeItems);
-        //            carousel_viewModel.setStoreItems(storeItems);
-        //        });
-        //    }
-        //});
 
 
     }

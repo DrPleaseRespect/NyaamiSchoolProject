@@ -8,11 +8,11 @@ import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 
 public class OrderWithItem {
     @Embedded
-    public StoreItem item;
+    public OrderItem order;
     @Relation(
-            parentColumn = "ItemID",
+            parentColumn = "StoreItemID",
             entityColumn = "ItemID"
     )
-    public OrderItem order;
+    public StoreItem item;
 
 }
