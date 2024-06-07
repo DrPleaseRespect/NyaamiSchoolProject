@@ -67,54 +67,12 @@ public class ProfileActivity extends AppCompatActivity implements OnSharedPrefer
                 });
 
 
-        // Obtain the Order History Data
-        //FirebaseFirestore db = FirebaseFirestore.getInstance();
-        //db.collection("UserData").whereEqualTo("Username", sharedPref.getString("User", "DrPleaseRespect")).limit(1).get().addOnCompleteListener(task -> {
-        //    if (task.isSuccessful()) {
-        //        String docid = task.getResult().getDocuments().get(0).getId();
-        //        if (HistoryListener != null) HistoryListener.remove();
-        //        HistoryListener = db.collection("UserData").document(docid).collection("History").orderBy(FieldPath.documentId()).addSnapshotListener((value, error) -> {
-        //            if (error != null) return;
-        //            List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-        //            List<OrderObject> orders = new ArrayList<>();
-        //
-        //            for (DocumentSnapshot doc : value.getDocuments()) {
-        //                DocumentReference docref = doc.getDocumentReference("Item");
-        //                if (docref == null) continue;
-        //                Task<DocumentSnapshot> doctask = docref.get();
-        //
-        //                doctask.addOnCompleteListener(task1 -> {
-        //                    if (task1.isSuccessful()) {
-        //                        DocumentSnapshot itemDoc = task1.getResult();
-        //                        StoreItem storeitem = new StoreItem(itemDoc);
-        //                        OrderObject order = new OrderObject(
-        //                                storeitem,
-        //                                1,
-        //                                doc.getId());
-        //
-        //
-        //                        orders.add(order);
-        //                    }
-        //                });
-        //                tasks.add(doctask);
-        //            }
-        //            Tasks.whenAllComplete(tasks).addOnCompleteListener(task1 -> {
-        //                ordersViewModel.setOrders(orders);
-        //            });
-        //        });
-        //    }
-        //});
 
 
         // For back button use finish()
         LinearLayout back = findViewById(id.CartButtonLinearLayout);
         back.setOnClickListener(v -> finish());
 
-        Button DebugButton = findViewById(id.DebugButton);
-        DebugButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, DebuggingActivity.class);
-            startActivity(intent);
-        });
     }
 
     @Override
