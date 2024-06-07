@@ -1,9 +1,5 @@
 package com.drpleaserespect.nyaamii.Activities;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -13,6 +9,10 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
@@ -34,11 +34,9 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
 
     protected void SetUserAvatar(String ImageURL) {
         ImageView ProfileImage = findViewById(id.UserAvatar);
-        if (ProfileImage != null) {
-            Glide.with(this)
-                    .load(ImageURL)
-                    .into(ProfileImage);
-        }
+        if (ProfileImage != null) Glide.with(this)
+                .load(ImageURL)
+                .into(ProfileImage);
     }
 
     @Override
@@ -66,13 +64,8 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
         // Get the category from the intent
         String category = getIntent().getStringExtra("Category");
         String searchQuery = getIntent().getStringExtra("SearchQuery");
-        if (searchQuery == null) {
-            searchQuery = "";
-        }
-        if (category == null) {
-            category = "";
-        }
-
+        if (searchQuery == null) searchQuery = "";
+        if (category == null) category = "";
 
 
         // Set Text of the Category
@@ -82,34 +75,29 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
 
         // Get the store items from DB and set it to the view model
         NyaamiDatabase db = NyaamiDatabase.getInstance(this);
-        if (category.equals("")) {
-            store_listener = db.storeItemDao()
-                    .watchSearch(searchQuery + "*")
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(storeItems -> {
-                        viewModel.postStoreItems(storeItems);
-                    }, throwable -> {
-                        Log.e(TAG, "Error: ", throwable);
-                    });
-        } else {
-            store_listener = db.storeItemDao()
-                    .watchAllinCategory(category)
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(storeItems -> {
-                        viewModel.postStoreItems(storeItems);
-                    }, throwable -> {
-                        Log.e(TAG, "Error: ", throwable);
-                    });
-        }
+        if (category.equals("")) store_listener = db.storeItemDao()
+                .watchSearch(searchQuery + '*')
+                .subscribeOn(Schedulers.io())
+                .subscribe(storeItems -> {
+                    viewModel.postStoreItems(storeItems);
+                }, throwable -> {
+                    Log.e(TAG, "Error: ", throwable);
+                });
+        else store_listener = db.storeItemDao()
+                .watchAllinCategory(category)
+                .subscribeOn(Schedulers.io())
+                .subscribe(storeItems -> {
+                    viewModel.postStoreItems(storeItems);
+                }, throwable -> {
+                    Log.e(TAG, "Error: ", throwable);
+                });
 
         //CreateDataListener(category, viewModel, searchQuery);
 
         // Search Functionality
         EditText SearchBar = findViewById(id.SearchBar);
 
-        if (!searchQuery.equals("")) {
-            SearchBar.setText(searchQuery);
-        }
+        if (!searchQuery.equals("")) SearchBar.setText(searchQuery);
 
         SearchBar.setImeOptions(EditorInfo.IME_ACTION_DONE);
         SearchBar.setImeActionLabel("Search", EditorInfo.IME_ACTION_DONE);
@@ -120,28 +108,23 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
             Log.d(TAG, "Event: " + event);
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 v.setCursorVisible(false);
-                if (store_listener != null) {
-                    store_listener.dispose();
-                }
-                if (v.getText().toString().equals("")) {
-                    store_listener = db.storeItemDao()
-                            .watchAllinCategory(finalCategory)
-                            .subscribeOn(Schedulers.io())
-                            .subscribe(storeItems -> {
-                                viewModel.postStoreItems(storeItems);
-                            }, throwable -> {
-                                Log.e(TAG, "Error: ", throwable);
-                            });
-                } else {
-                    store_listener = db.storeItemDao()
-                            .watchSearchInCategory(finalCategory, v.getText().toString())
-                            .subscribeOn(Schedulers.io())
-                            .subscribe(storeItems -> {
-                                viewModel.postStoreItems(storeItems);
-                            }, throwable -> {
-                                Log.e(TAG, "Error: ", throwable);
-                            });
-                }
+                if (store_listener != null) store_listener.dispose();
+                if (v.getText().toString().equals("")) store_listener = db.storeItemDao()
+                        .watchAllinCategory(finalCategory)
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(storeItems -> {
+                            viewModel.postStoreItems(storeItems);
+                        }, throwable -> {
+                            Log.e(TAG, "Error: ", throwable);
+                        });
+                else store_listener = db.storeItemDao()
+                        .watchSearchInCategory(finalCategory, v.getText().toString())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(storeItems -> {
+                            viewModel.postStoreItems(storeItems);
+                        }, throwable -> {
+                            Log.e(TAG, "Error: ", throwable);
+                        });
             }
 
             return false;
@@ -157,11 +140,6 @@ public class CategoryActivity extends AppCompatActivity implements OnSharedPrefe
             Intent intent = new Intent(this, ProfileActivity.class);
             startActivity(intent);
         });
-
-
-
-
-
 
 
     }

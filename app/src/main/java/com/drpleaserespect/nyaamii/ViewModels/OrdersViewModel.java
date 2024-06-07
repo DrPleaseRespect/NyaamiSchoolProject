@@ -4,7 +4,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.drpleaserespect.nyaamii.Database.DataEntites.DataClasses.OrderWithItem;
-import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 
 import java.util.List;
 

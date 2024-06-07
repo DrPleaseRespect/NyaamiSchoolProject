@@ -46,6 +46,7 @@ public class OrdersFragment extends Fragment {
     private NyaamiDatabase DB_instance = null;
 
     private CompositeDisposable mDisposable = new CompositeDisposable();
+
     public OrdersFragment() {
         // Required empty public constructor
     }
@@ -62,9 +63,7 @@ public class OrdersFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         OrdersViewModel ordersViewModel = new ViewModelProvider(requireActivity()).get(OrdersViewModel.class);
         LoaderViewModel loaderViewModel = new ViewModelProvider(requireActivity()).get(LoaderViewModel.class);
-        if (mDisposable.isDisposed()) {
-            mDisposable = new CompositeDisposable();
-        }
+        if (mDisposable.isDisposed()) mDisposable = new CompositeDisposable();
         DB_instance = NyaamiDatabase.getInstance(requireContext());
 
 
@@ -109,12 +108,11 @@ public class OrdersFragment extends Fragment {
             public void onClickClose(ViewHolder viewHolder, OrderWithItem orderObject) {
                 mDisposable.add(
                         DB_instance.userDao().deleteOrder(orderObject.order).subscribeOn(Schedulers.io())
-                                .subscribe(() -> {}, throwable -> {
+                                .subscribe(() -> {
+                                }, throwable -> {
                                     Log.e(TAG, "onClickClose: " + throwable.getMessage());
                                 })
                 );
-
-
 
 
             }
@@ -128,9 +126,10 @@ public class OrdersFragment extends Fragment {
                 mDisposable.add(
                         userDao.updateOrder(orderObject.order)
                                 .subscribeOn(Schedulers.io())
-                                .subscribe(() -> {}, throwable -> {
-                            Log.e(TAG, "onClickQuantityAdd: " + throwable.getMessage());
-                        }));
+                                .subscribe(() -> {
+                                }, throwable -> {
+                                    Log.e(TAG, "onClickQuantityAdd: " + throwable.getMessage());
+                                }));
 
             }
 
@@ -140,17 +139,16 @@ public class OrdersFragment extends Fragment {
                 UserDao userDao = DB_instance.userDao();
                 orderObject.order.OrderQuantity -= 1;
                 Completable completable_obj;
-                if (orderObject.order.OrderQuantity <= 0) {
+                if (orderObject.order.OrderQuantity <= 0)
                     completable_obj = userDao.deleteOrder(orderObject.order);
-                } else {
-                    completable_obj = userDao.updateOrder(orderObject.order);
-                }
+                else completable_obj = userDao.updateOrder(orderObject.order);
 
                 mDisposable.add(completable_obj
                         .subscribeOn(Schedulers.io())
-                        .subscribe(() -> {}, throwable -> {
-                    Log.e(TAG, "onClickQuantityRemove: " + throwable.getMessage());
-                }));
+                        .subscribe(() -> {
+                        }, throwable -> {
+                            Log.e(TAG, "onClickQuantityRemove: " + throwable.getMessage());
+                        }));
 
             }
 
@@ -166,17 +164,17 @@ public class OrdersFragment extends Fragment {
                 }
                 Completable completable_obj;
                 UserDao userDao = DB_instance.userDao();
-                if (quantity_int <= 0) {
-                    completable_obj = userDao.deleteOrder(orderObject.order);
-                } else {
+                if (quantity_int <= 0) completable_obj = userDao.deleteOrder(orderObject.order);
+                else {
                     orderObject.order.OrderQuantity = quantity_int;
                     completable_obj = userDao.updateOrder(orderObject.order);
                 }
                 mDisposable.add(completable_obj
                         .subscribeOn(Schedulers.io())
-                        .subscribe(() -> {}, throwable -> {
-                    Log.e(TAG, "onEditQuantity: " + throwable.getMessage());
-                }));
+                        .subscribe(() -> {
+                        }, throwable -> {
+                            Log.e(TAG, "onEditQuantity: " + throwable.getMessage());
+                        }));
             }
         });
     }
@@ -233,23 +231,30 @@ public class OrdersFragment extends Fragment {
             }
 
             viewHolder.getCloseButton().setOnClickListener(v -> {
-                if (onClickListener != null) onClickListener.onClickClose(viewHolder, orderObject);
+                if (onClickListener != null) {
+                    onClickListener.onClickClose(viewHolder, orderObject);
+                }
             });
             viewHolder.getQuantityAddButton().setOnClickListener(v -> {
-                if (onClickListener != null)
+                if (onClickListener != null) {
                     onClickListener.onClickQuantityAdd(viewHolder, orderObject);
+                }
             });
             viewHolder.getQuantityRemoveButton().setOnClickListener(v -> {
-                if (onClickListener != null)
+                if (onClickListener != null) {
                     onClickListener.onClickQuantityRemove(viewHolder, orderObject);
+                }
             });
             viewHolder.getItemQuantityView().setOnEditorActionListener((v, actionId, event) -> {
                 Log.d(TAG, "onBindViewHolder: EditorActionListener: " + actionId);
-                if (actionId == EditorInfo.IME_ACTION_NEXT || actionId == EditorInfo.IME_ACTION_DONE)
-                    if (onClickListener != null) onClickListener.onEditQuantity(
-                            viewHolder, orderObject,
-                            v.getText().toString()
-                    );
+                if ((actionId == EditorInfo.IME_ACTION_NEXT) || (actionId == EditorInfo.IME_ACTION_DONE)) {
+                    if (onClickListener != null) {
+                        onClickListener.onEditQuantity(
+                                viewHolder, orderObject,
+                                v.getText().toString()
+                        );
+                    }
+                }
                 return true;
             });
         }

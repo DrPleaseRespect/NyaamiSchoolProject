@@ -15,7 +15,6 @@ import androidx.viewbinding.ViewBinding;
 
 import com.bumptech.glide.Glide;
 import com.drpleaserespect.nyaamii.Activities.ProductDetailActivity;
-import com.drpleaserespect.nyaamii.R;
 import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
@@ -30,6 +29,7 @@ import java.util.List;
 
 public class StoreItemsCarouselFragment extends Fragment {
     private final String TAG = "StoreItemsCarouselFragment";
+
     public StoreItemsCarouselFragment() {
         super(layout.fragment_store_items_carousel);
     }
@@ -43,9 +43,8 @@ public class StoreItemsCarouselFragment extends Fragment {
             List<CarouselItem> items = new ArrayList<>();
             for (StoreItem item : storeItems) {
                 Glide.with(requireContext()).load(item.getImageUrl()).preload();
-                if (item.FeaturedItem) {
+                if (item.FeaturedItem)
                     items.add(new CarouselItem(item.getImageUrl(), item.getName()));
-                }
             }
             Log.d(TAG, "RAW Items: " + storeItems);
             Log.d(TAG, "Items: " + items);
@@ -64,6 +63,7 @@ public class StoreItemsCarouselFragment extends Fragment {
             public void onBindViewHolder(@NonNull ViewBinding viewBinding, @NonNull CarouselItem carouselItem, int i) {
 
             }
+
             @Override
             public void onClick(int position, CarouselItem carouselItem) {
                 Log.d(TAG, "Clicked item name: " + viewModel.getStoreItems().getValue().get(position));

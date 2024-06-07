@@ -78,12 +78,10 @@ public abstract class UserDao {
             OrderItem orderItem = getCartItem_sync(user.getUserName(), item.ItemID).order;
             orderItem.OrderQuantity += 1;
             return updateOrder(orderItem);
-        } else {
-            OrderItem orderItem = new OrderItem(item.ItemID, 1, user.getUserName());
-            return insertOrder(orderItem);
         }
+        OrderItem orderItem = new OrderItem(item.ItemID, 1, user.getUserName());
+        return insertOrder(orderItem);
     }
-
 
 
 }

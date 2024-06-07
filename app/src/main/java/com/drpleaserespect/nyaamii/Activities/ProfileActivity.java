@@ -13,27 +13,17 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.drpleaserespect.nyaamii.Database.DataEntites.DataClasses.OrderWithItem;
 import com.drpleaserespect.nyaamii.Database.DataEntites.OrderItem;
 import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
-import com.drpleaserespect.nyaamii.Database.DataEntites.DataClasses.OrderWithItem;
-import com.drpleaserespect.nyaamii.Database.DataEntites.DataClasses.UserWithHistory;
 import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
-import com.drpleaserespect.nyaamii.R;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.R.string;
 import com.drpleaserespect.nyaamii.ViewModels.OrdersViewModel;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldPath;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import io.reactivex.rxjava3.disposables.Disposable;
 
@@ -41,7 +31,7 @@ public class ProfileActivity extends AppCompatActivity implements OnSharedPrefer
 
     private SharedPreferences sharedPref = null;
     private Disposable HistoryListener = null;
-    private String TAG = "ProfileActivity";
+    private final String TAG = "ProfileActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,18 +50,18 @@ public class ProfileActivity extends AppCompatActivity implements OnSharedPrefer
         HistoryListener = db.userDao()
                 .watchUserWithHistory("DrPleaseRespect")
                 .subscribe(historyObj -> {
-            List<OrderWithItem> orders = new ArrayList<>();
-            for (StoreItem order : historyObj.history) {
-                OrderWithItem orderObject = new OrderWithItem(
-                        new OrderItem(order.ItemID, 1, historyObj.user.getUserName()),
-                        order
+                    List<OrderWithItem> orders = new ArrayList<>();
+                    for (StoreItem order : historyObj.history) {
+                        OrderWithItem orderObject = new OrderWithItem(
+                                new OrderItem(order.ItemID, 1, historyObj.user.getUserName()),
+                                order
 
-                );
-                orders.add(orderObject);
-                Log.d(TAG, "onCreate: " + orders.toString());
-            }
-            ordersViewModel.postOrders(orders);
-        }, throwable -> {
+                        );
+                        orders.add(orderObject);
+                        Log.d(TAG, "onCreate: " + orders);
+                    }
+                    ordersViewModel.postOrders(orders);
+                }, throwable -> {
                     Log.e(TAG, "Order History Data: " + throwable.getMessage());
                     throw throwable;
                 });

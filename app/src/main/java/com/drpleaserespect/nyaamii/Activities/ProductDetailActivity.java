@@ -29,7 +29,6 @@ import com.drpleaserespect.nyaamii.Database.NyaamiDatabase;
 import com.drpleaserespect.nyaamii.R.id;
 import com.drpleaserespect.nyaamii.R.layout;
 import com.drpleaserespect.nyaamii.R.string;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -63,21 +62,18 @@ public class ProductDetailActivity extends AppCompatActivity {
         ((TextView) findViewById(id.ItemName)).setText(item.getName());
         ((TextView) findViewById(id.ItemPrice)).setText(item.getPriceString());
         ((TextView) findViewById(id.ItemDescription)).setText(item.getDescription());
-        Glide.with(this)
-                .load(item.getImageUrl())
-                .addListener(new RequestListener<Drawable>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                        return false;
-                    }
+        Glide.with(this).load(item.getImageUrl()).addListener(new RequestListener<Drawable>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
+                return false;
+            }
 
-                    @Override
-                    public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-                        loadinglayout.setVisibility(View.GONE);
-                        return false;
-                    }
-                })
-                .into((ImageView) findViewById(id.ItemImage));
+            @Override
+            public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                loadinglayout.setVisibility(View.GONE);
+                return false;
+            }
+        }).into((ImageView) findViewById(id.ItemImage));
 
         // Cart Button
         ImageView CartButton = findViewById(id.CartButton);
@@ -127,20 +123,18 @@ public class ProductDetailActivity extends AppCompatActivity {
         UserDao userDao = db.userDao();
         // Get User Entity
         // Add Item to Cart
-        mDisposable.add(userDao.getByUsername(user).subscribeOn(Schedulers.io()).subscribe(
-                user_entity -> {
-                    mDisposable.add(userDao.addToOrder(user_entity, item).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(() -> {
-                        if (BuyNow) {
-                            Intent intent = new Intent(this, CartActivity.class);
-                            startActivity(intent);
-                        } else {
-                            Toast.makeText(this, getString(string.AddedToCartText), Toast.LENGTH_SHORT).show();
-                        }
-                    }));
-                }, throwable -> {
-                    Log.e(TAG, "Error: " + throwable.getMessage());
+        mDisposable.add(userDao.getByUsername(user).subscribeOn(Schedulers.io()).subscribe(user_entity -> {
+            mDisposable.add(userDao.addToOrder(user_entity, item).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(() -> {
+                if (BuyNow) {
+                    Intent intent = new Intent(this, CartActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, getString(string.AddedToCartText), Toast.LENGTH_SHORT).show();
                 }
-        ));
+            }));
+        }, throwable -> {
+            Log.e(TAG, "Error: " + throwable.getMessage());
+        }));
     }
 
     @Override

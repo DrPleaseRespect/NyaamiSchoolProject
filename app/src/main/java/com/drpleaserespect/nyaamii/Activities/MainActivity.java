@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
     private static final String TAG = "MainActivity";
     private static final String TEST_USER = "DrPleaseRespect";
 
-    private static ListenerRegistration user_snapshot_listener = null;
+    private static final ListenerRegistration user_snapshot_listener = null;
     private static Disposable store_snapshot_listener = null;
     private static Disposable carousel_listener = null;
     private final List<MaterialButton> CategoryButtons = new ArrayList<>();
@@ -58,48 +58,6 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
     private LoaderViewModel loaderViewModel = null;
     private SharedPreferences sharedPref = null;
 
-    //    private void CreateDataListener(StoreItemViewModel viewModel, String SearchQuery) {
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//
-//
-//        Query db_collection = db.collectionGroup("Items");
-//
-//
-//        if (!SearchQuery.equals(""))
-//            db_collection = db_collection.where(Filter.or(
-//                    Filter.and(
-//                            Filter.greaterThanOrEqualTo("searchName", SearchQuery),
-//                            Filter.lessThan("searchName", SearchQuery + '\uf8ff')
-//                    ),
-//                    Filter.and(
-//                            Filter.greaterThanOrEqualTo("Name", SearchQuery),
-//                            Filter.lessThan("Name", SearchQuery + '\uf8ff')
-//                    )
-//
-//                    ));
-//
-//
-//        if (store_snapshot_listener != null) store_snapshot_listener.remove();
-//        store_snapshot_listener = db_collection.addSnapshotListener((queryDocumentSnapshots, e) -> {
-//            if (e != null) {
-//                Log.w(TAG, "Listen failed.", e);
-//                return;
-//            }
-//            List<StoreItem> storeItems = new ArrayList<>();
-//            for (QueryDocumentSnapshot doc : queryDocumentSnapshots)
-//                if ((doc != null) && doc.exists()) {
-//                    Map<String, Object> data = doc.getData();
-//                    Log.d(TAG, "Data Obtained From Firebase: " + data);
-//                    if (data != null) {
-//                        StoreItem item = new StoreItem(doc);
-//                        storeItems.add(item);
-//                    }
-//                }
-//            viewModel.setStoreItems(storeItems);
-//        });
-//
-//    }
-//
     private void SetUserInfo(String ImageURL, String Username, String Email) {
         // Set the user's Image
         ImageView imageView = findViewById(id.UserAvatar);
@@ -121,11 +79,8 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
-        if ((key != null) && key.equals("User")) {
+        if (key != null && key.equals("User"))
             Log.d(TAG, "User Changed: " + sharedPreferences.getString("User", "DrPleaseRespect"));
-            //Query query = FirebaseFirestore.getInstance().collection("UserData").whereEqualTo("Username", sharedPreferences.getString("User", "DrPleaseRespect"));
-            //RegisterProfileListener(query);
-        }
     }
 
     @Override
@@ -134,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         setContentView(layout.activity_main);
 
         // Initialize Loader
-        loader_obj = new Loader(new String[]{"Profile", "Categories","Items"});
+        loader_obj = new Loader(new String[]{"Profile", "Categories", "Items"});
 
 
         // Get the loader view model
@@ -147,8 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
             }
 
             @Override
-            public void onAllLoaded()
-            {
+            public void onAllLoaded() {
                 loaderViewModel.setStartDelay(2000);
                 loaderViewModel.setStatus(true);
             }
@@ -164,37 +118,6 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         NyaamiDatabase db = NyaamiDatabase.getInstance(this);
         StoreItemDao storeItemDao = db.storeItemDao();
 
-        // Create Store Items for Testing
-        //List<StoreItem> storeItems = new ArrayList<>();
-        //FirebaseFirestore db_firebase = FirebaseFirestore.getInstance();
-        // Get the store items from db_firebase and add it to the storeItems list
-        //db_firebase.collectionGroup("Items").get().addOnCompleteListener(task -> {
-        //    if (task.isSuccessful()) {
-        //        for (QueryDocumentSnapshot document : task.getResult()) {
-        //            Log.d("Tag", document.getData().toString());
-        //            StoreItem storeItem = new StoreItem(
-        //                    document.getString("Name"),
-        //                    document.getDouble("Price"),
-        //                    document.getString("ImageURL"),
-        //                    document.getString("Description"),
-        //                    ""
-        //            );
-        //            storeItems.add(storeItem);
-        //        }
-        //        mDisposable.add(
-        //                storeItemDao.insertStoreItems(storeItems.toArray(new StoreItem[0]))
-        //                        .subscribeOn(Schedulers.io())
-//
-//
-        //                        .subscribeOn(Schedulers.io())
-        //                        .subscribe(() -> {
-        //                            Log.d(TAG, "Store Items Inserted");
-        //                            //db.close();
-        //                        }, throwable -> {
-        //                            Log.e(TAG, "Error Inserting Store Items");
-        //                        }));
-        //    }
-        //});
 
 
         UserDao userDao = db.userDao();
@@ -264,9 +187,6 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
 
         // Initialize Debug Preferences
 
-        //while (sharedPref == null) {
-        //    Log.d(TAG, "SOMETHING HAS GONE ABSOLUTELY FUCKED!");
-        //}
         Editor editor = sharedPref.edit();
         editor.putString("User", sharedPref.getString("User", "DrPleaseRespect"));
         editor.apply();
@@ -309,33 +229,32 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         SearchBar.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 v.setCursorVisible(false);
-                if (store_snapshot_listener != null) store_snapshot_listener.dispose();
-                if (!v.getText().toString().equals("")) {
-                    store_snapshot_listener = db.storeItemDao()
-                            .watchSearch(v.getText().toString() + "*")
-                            .subscribeOn(Schedulers.io())
-                            .subscribe(
-                                    storeItems_watching -> {
-                                        store_viewModel.postStoreItems(storeItems_watching);
-                                        Log.d(TAG, "Item Initialization Finished");
-                                    }, throwable -> {
-                                        Log.e(TAG, "Item Initialization Failed " + throwable);
-                                    }
-                            );
-                } else {
-                    store_snapshot_listener = db.storeItemDao()
-                            .watchAll()
-                            .subscribeOn(Schedulers.io())
-                            .subscribe(
-                                    storeItems_watching -> {
-                                        db.close();
-                                        store_viewModel.postStoreItems(storeItems_watching);
-                                        Log.d(TAG, "Item Initialization Finished");
-                                    }, throwable -> {
-                                        Log.e(TAG, "Item Initialization Failed " + throwable);
-                                    }
-                            );
+                if (store_snapshot_listener != null) {
+                    store_snapshot_listener.dispose();
                 }
+                if (!v.getText().toString().equals("")) store_snapshot_listener = db.storeItemDao()
+                        .watchSearch(v.getText().toString() + '*')
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(
+                                storeItems_watching -> {
+                                    store_viewModel.postStoreItems(storeItems_watching);
+                                    Log.d(TAG, "Item Initialization Finished");
+                                }, throwable -> {
+                                    Log.e(TAG, "Item Initialization Failed " + throwable);
+                                }
+                        );
+                else store_snapshot_listener = db.storeItemDao()
+                        .watchAll()
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(
+                                storeItems_watching -> {
+                                    db.close();
+                                    store_viewModel.postStoreItems(storeItems_watching);
+                                    Log.d(TAG, "Item Initialization Finished");
+                                }, throwable -> {
+                                    Log.e(TAG, "Item Initialization Failed " + throwable);
+                                }
+                        );
 
                 //CreateDataListener(store_viewModel, v.getText().toString().toLowerCase());
             }
@@ -361,7 +280,6 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
                             Log.e(TAG, "Carousel Data Failed " + throwable);
                         }
                 );
-
 
 
     }

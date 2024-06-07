@@ -16,36 +16,10 @@ import com.drpleaserespect.nyaamii.Database.DataEntites.StoreItem;
 import com.drpleaserespect.nyaamii.Database.DataEntites.User;
 
 
-
 @Database(entities = {StoreItem.class, User.class, OrderItem.class, UserHistoryCrossRef.class},
         version = 2
 )
 public abstract class NyaamiDatabase extends RoomDatabase {
-    public abstract StoreItemDao storeItemDao();
-    public abstract UserDao userDao();
-
-    private static volatile NyaamiDatabase INSTANCE = null;
-
-    public static NyaamiDatabase getInstance(Context context) {
-        if (INSTANCE == null) {
-            synchronized (NyaamiDatabase.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(
-                            context.getApplicationContext(),
-                            NyaamiDatabase.class,
-                            "NyaamiDatabase"
-                    )
-                            .createFromAsset("database/NyaamiDatabase.db")
-                            .fallbackToDestructiveMigration()
-                            .addMigrations(MIGRATION_1_2)
-                            .build();
-                }
-            }
-        }
-        return INSTANCE;
-    }
-
-
     static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
@@ -66,9 +40,28 @@ public abstract class NyaamiDatabase extends RoomDatabase {
             db.execSQL("DROP TABLE UserCartCrossRef");
 
 
-
         }
     };
+    private static volatile NyaamiDatabase INSTANCE = null;
+
+    public static NyaamiDatabase getInstance(Context context) {
+        if (INSTANCE == null) synchronized (NyaamiDatabase.class) {
+            if (INSTANCE == null) INSTANCE = Room.databaseBuilder(
+                            context.getApplicationContext(),
+                            NyaamiDatabase.class,
+                            "NyaamiDatabase"
+                    )
+                    .createFromAsset("database/NyaamiDatabase.db")
+                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_1_2)
+                    .build();
+        }
+        return INSTANCE;
+    }
+
+    public abstract StoreItemDao storeItemDao();
+
+    public abstract UserDao userDao();
 
 }
 

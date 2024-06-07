@@ -11,7 +11,8 @@ import com.drpleaserespect.nyaamii.Database.DataEntites.User;
 import java.util.List;
 
 public class UserWithHistory {
-    @Embedded public User user;
+    @Embedded
+    public User user;
     @Relation(
             parentColumn = "userName",
             entityColumn = "ItemID",

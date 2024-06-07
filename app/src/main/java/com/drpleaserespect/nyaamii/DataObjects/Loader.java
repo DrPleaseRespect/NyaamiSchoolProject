@@ -6,25 +6,25 @@ import java.util.Map.Entry;
 
 public class Loader {
 
-    public interface Listener {
-        void onLoaded(String object);
-        void onAllLoaded();
-    }
-
     private final Map<String, Boolean> loaded_objects = new HashMap<>();
     private Listener listener = null;
     public Loader(String[] load_objects) {
-        for (String object : load_objects) loaded_objects.put(object, false);
+        for (String object : load_objects) {
+            loaded_objects.put(object, false);
+        }
     }
 
     public void setListener(Listener listener) {
         this.listener = listener;
     }
+
     public void setLoaded(String object) {
         loaded_objects.put(object, true);
         if (listener != null) {
             listener.onLoaded(object);
-            if (AllLoaded()) listener.onAllLoaded();
+            if (AllLoaded()) {
+                listener.onAllLoaded();
+            }
         }
     }
 
@@ -37,8 +37,17 @@ public class Loader {
     }
 
     public boolean AllLoaded() {
-        for (Entry<String, Boolean> entry : loaded_objects.entrySet())
-            if (!entry.getValue()) return false;
+        for (Entry<String, Boolean> entry : loaded_objects.entrySet()) {
+            if (!entry.getValue()) {
+                return false;
+            }
+        }
         return true;
+    }
+
+    public interface Listener {
+        void onLoaded(String object);
+
+        void onAllLoaded();
     }
 }
