@@ -131,6 +131,8 @@ public class ProductDetailActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(this, getString(string.AddedToCartText), Toast.LENGTH_SHORT).show();
                 }
+            }, throwable -> {
+                Log.e(TAG, "AddToCart: " + throwable.getMessage());
             }));
         }, throwable -> {
             Log.e(TAG, "Error: " + throwable.getMessage());

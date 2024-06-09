@@ -50,6 +50,8 @@ public class TransactionActivity extends AppCompatActivity {
                 .subscribeOn(Schedulers.io())
                 .subscribe(orders -> {
                     ordersViewModel.postOrders(orders);
+                }, throwable -> {
+                    Log.e(TAG, "CartData: " + throwable.getMessage());
                 });
 
 

@@ -3,6 +3,7 @@ package com.drpleaserespect.nyaamii.Activities;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewPropertyAnimator;
 import android.widget.TextView;
 
@@ -51,6 +52,9 @@ public class CartActivity extends AppCompatActivity {
                 .subscribeOn(Schedulers.io())
                 .subscribe(orders -> {
                             ordersViewModel.postOrders(orders);
+                        }, throwable -> {
+                            // Error Handling
+                            Log.e(TAG, "onCreate: " + throwable.getMessage());
                         }
                 );
 
