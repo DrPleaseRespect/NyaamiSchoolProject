@@ -106,6 +106,9 @@ public class OrdersFragment extends Fragment {
         Adapter.setOnClickListener(new OnClickListener() {
             @Override
             public void onClickClose(ViewHolder viewHolder, OrderWithItem orderObject) {
+                if (DB_instance == null) {
+                    DB_instance = NyaamiDatabase.getInstance(requireContext());
+                }
                 mDisposable.add(
                         DB_instance.userDao().deleteOrder(orderObject.order).subscribeOn(Schedulers.io())
                                 .subscribe(() -> {
@@ -119,7 +122,9 @@ public class OrdersFragment extends Fragment {
 
             @Override
             public void onClickQuantityAdd(ViewHolder viewHolder, OrderWithItem orderObject) {
-
+                if (DB_instance == null) {
+                    DB_instance = NyaamiDatabase.getInstance(requireContext());
+                }
 
                 UserDao userDao = DB_instance.userDao();
                 orderObject.order.OrderQuantity += 1;
@@ -135,7 +140,9 @@ public class OrdersFragment extends Fragment {
 
             @Override
             public void onClickQuantityRemove(ViewHolder viewHolder, OrderWithItem orderObject) {
-
+                if (DB_instance == null) {
+                    DB_instance = NyaamiDatabase.getInstance(requireContext());
+                }
                 UserDao userDao = DB_instance.userDao();
                 orderObject.order.OrderQuantity -= 1;
                 Completable completable_obj;
@@ -154,6 +161,9 @@ public class OrdersFragment extends Fragment {
 
             @Override
             public void onEditQuantity(ViewHolder viewHolder, OrderWithItem orderObject, String quantity) {
+                if (DB_instance == null) {
+                    DB_instance = NyaamiDatabase.getInstance(requireContext());
+                }
                 // Turn quantity into an integer
                 int quantity_int;
                 try {
